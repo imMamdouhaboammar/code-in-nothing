@@ -19,15 +19,21 @@ class Cost:
     probe_evaluations: int = 0
 
     def __post_init__(self) -> None:
-        if any(type(getattr(self, field.name)) is not int or getattr(self, field.name) < 0
-               for field in fields(self)):
+        if any(
+            type(getattr(self, field.name)) is not int or getattr(self, field.name) < 0
+            for field in fields(self)
+        ):
             raise ValueError("cost dimensions must be nonnegative integers")
 
     def __add__(self, other: Cost) -> Cost:
-        return Cost(**{f.name: getattr(self, f.name) + getattr(other, f.name) for f in fields(self)})
+        return Cost(
+            **{f.name: getattr(self, f.name) + getattr(other, f.name) for f in fields(self)}
+        )
 
     def __sub__(self, other: Cost) -> Cost:
-        return Cost(**{f.name: getattr(self, f.name) - getattr(other, f.name) for f in fields(self)})
+        return Cost(
+            **{f.name: getattr(self, f.name) - getattr(other, f.name) for f in fields(self)}
+        )
 
     def fits(self, limit: Cost) -> bool:
         return all(getattr(self, f.name) <= getattr(limit, f.name) for f in fields(self))
