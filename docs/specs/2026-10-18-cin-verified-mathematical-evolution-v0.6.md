@@ -184,6 +184,8 @@ Count negative transfer and misleading shortcuts; revisiting MAX2 on a larger do
 
 ## 9. M5 birth-gated deterministic generations
 
+**Dependency reconciliation:** the existing approved [P1 lifecycle gate](../roadmap/PHASES.md) is a *prerequisite* for implementing new semantic worlds and hereditary transfer, not a downstream enhancement. Before G3 (world implementation), P1 must demonstrate bounded multi-epoch replay, durable append/recovery, exactly-once child events, immutable stop/maturity contracts, and per-actor resource ledgers. The later G7 research work studies population-level adaptation and additional birth-gated inheritance policies on that already durable foundation. The M5 research label does not waive the earlier P1 implementation gate.
+
 Every organism has immutable parentage, birth-genome hash, maturity and stop rule hashes, active policy version, accepted capabilities, and durable account ledger. The governor owns candidate survival and policy changes. Adaptation is **staged** for a descendant and cannot mutate an existing organism's fixed maturity or stopping conditions.
 
 Transition evidence includes `PROPOSED`, `CHECKED`, `ACCEPTED`/`REJECTED`/`UNKNOWN`, `ARCHIVED`, `REPRODUCTION_ELIGIBLE`, `CHILD_COMMITTED`, and `STOPPED`. State-machine ownership must make duplicate births invalid, not merely unlikely.
@@ -257,17 +259,21 @@ When a new PR lands, update the ledger using actual commit IDs, machine-checkabl
 
 **G1: M2 IR + signature/search foundation** (PR #2, independent of G0's statistical confirmation): add opt-in N-input contract, typed checks, interpreter/export, deterministic bounded search and legacy regressions. Pass full repository tests and both old M1 synthesis runs. **The PR must not claim M2 discovery.**
 
-**G2: M2 independent three-input worlds** (new implementation PR): add opt-in world v0.3 schema, input tuple/term evaluator, precondition and postcondition, finite verification and non-vacuity handling; prove malformed spec/arity fail closed; add median3 and clamp worlds without reference-code ingestion.
+**G2: P1 durable multi-epoch lifecycle (required before new world work)**: ship the approved `P1-01` immutable cohort manifest/replay, `P1-02` governor and finite scheduler, and `P1-03` atomic archive/checkpoint recovery in narrow PRs. Prove >=3 legitimate generations with fixed parent DAG, bounded budgets, deterministic restart, exactly-once child creation and crash-injection tests. The existing P1 gate is mandatory before G3-G7 runtime claims. If P1 remains unstable, stop new semantic-world or macro runtime features.
 
-**G3: M2 search benchmark** (new measured PR): freeze budgets, search grammar, probes and at least one new solved 3-input relation; archive failures, independent 3-input finite verification and cost ledger. If neither target is solved, report negative pilot and improve search only through an explicit research decision.
+**G3: M2 independent three-input worlds (after P1)**: add opt-in world v0.3 schema, input tuple/term evaluator, precondition and postcondition, finite verification and non-vacuity handling; prove malformed specs/arity fail closed; add median3 and clamp worlds without reference-code ingestion.
 
-**G4: M3 semantic novelty**: independent admissibility + output existence/uniqueness + relation novelty, three verified relation families; reject UNKNOWN and superficial mutations.
+**G4: M2 search benchmark (after G3)**: freeze budgets, search grammar, probes and at least one newly solved 3-input relation; archive failures, independently verified finite-domain evidence and complete measured work. If neither target is solved, report a negative pilot and improve search only through an explicit research decision.
 
-**G5: M4 knowledge transfer**: typed, dependency-closed macros and distinct-task comparisons that include origin costs.
+**G5: M3 semantic novelty (after P1, G3-G4)**: independent admissibility + output existence/uniqueness + relation novelty, three verified relation families; reject UNKNOWN and superficial mutations.
 
-**G6: M5 lifecycle**: deterministic population/generation checkpoint recovery and immutable birth rules, interrupt/replay tests.
+**G6: M4 knowledge transfer (after P1 and M3)**: typed, dependency-closed macros and distinct-task comparisons including origin costs. Use P1 durability for inherited state; do not introduce a second scheduler.
 
-**G7: optional SMT, GCD, egcd**: separately authorized math and solver gates, never a forced dependency to release G1–G6.
+**G7: M5 extended population and birth-gated policy adaptation (on P1)**: advance policies/selection and adaptation experiments beyond P1's already verified checkpoint/replay foundation. Demonstrate matched fixed-policy controls, valid capability preservation, and no maturity or stop-rule mutation. Do not repeat P1 as a later prerequisite.
+
+**G8: optional SMT, GCD, egcd**: separately justified math/solver gates, never a forced dependency for G0-G7.
+
+**Dependency authority:** This ordering follows the approved [P0-P6 phase map](../roadmap/PHASES.md): P1 lifecycle before P2 semantic worlds before P3 abstractions and P4 adaptation. G0 and the additive G1 typed-IR foundation can advance without claiming that P1 has passed, but G3-G7 implementation and acceptance may not bypass it.
 
 Each PR has one falsifiable outcome, touched-file list, tests with RED/GREEN when behavior changes, immutable benchmark references, versioned contract notes, observed resource/costs, risk/rollback, and known limitations. Unmerged dependent PRs must be explicitly stacked or postponed. Never commit directly to main, self-approve, or merge without user authority.
 
