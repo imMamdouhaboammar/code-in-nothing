@@ -1,0 +1,25 @@
+# Code in Nothing: runtime-validated finite-domain MAX2 task specification.
+api_version: cin.world/v0.1
+id: cin.world.logic.max2.001
+family: comparisons
+input_types: [Int, Int]
+return_type: Int
+input_domain:
+  x: { min: -8, max: 8 }
+  y: { min: -8, max: 8 }
+precondition:
+  and:
+    - { gte: [x, -8] }
+    - { lte: [x, 8] }
+    - { gte: [y, -8] }
+    - { lte: [y, 8] }
+postcondition:
+  and:
+    - { gte: [result, x] }
+    - { gte: [result, y] }
+    - { or: [{ eq: [result, x] }, { eq: [result, y] }] }
+validation:
+  require_typed_spec: true
+  require_admissible_grammar_witness: true
+  witness_visibility: verifier_only
+  unknown_is_not_pass: true

@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use or reference this research software in academic or technical work, please cite it as below."
+authors:
+  - family-names: "Aboammar"
+    given-names: "Mamdouh"
+title: "Code in Nothing (CIN-Lab): Model-Free Bounded Evolutionary Program-Synthesis Research Prototype"
+version: 0.1.0
+date-released: 2026-10-18
+url: "https://github.com/imMamdouhaboammar/code-in-nothing"
+repository-code: "https://github.com/imMamdouhaboammar/code-in-nothing"
+license: Apache-2.0
+keywords:
+  - program-synthesis
+  - evolutionary-computation
+  - formal-methods
+  - program-induction
+  - finite-domain-verification
+  - model-free-ai
+abstract: >-
+  Code in Nothing (CIN-Lab) is a runnable, model-free evolutionary program-synthesis
+  experiment exploring typed code structures under bounded formal specifications.
+  Operating without large language models or pretrained code generators, CIN-Lab uses
+  deterministic grammar enumeration, finite-domain verification witnesses, adaptive
+  domain mutation, and two-specification replay inheritance gates.

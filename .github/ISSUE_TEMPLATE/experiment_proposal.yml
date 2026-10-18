@@ -1,0 +1,44 @@
+name: Research / Experiment Proposal
+description: Propose a milestone, formal world contract, or ablation experiment
+labels: ["research", "proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        CIN-Lab follows a formal milestone progression (see `docs/roadmap/PHASES.md`). Research proposals should respect the model-free and five-gene invariants.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Proposal Summary
+      description: Concise summary of the research hypothesis or formal extension.
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Target Phase / Category
+      description: Which roadmap phase does this target?
+      options:
+        - "P1: Formal World Expansion & Mutators"
+        - "P2: Abstraction Learner & Macro Induction"
+        - "P3: Multi-Epoch Population Scheduling"
+        - "P4: Adaptable Driver Policies"
+        - "P5: Hidden Transfer Benchmark"
+        - "IR / Interpreter Optimization"
+        - "Other"
+    validations:
+      required: true
+  - type: textarea
+    id: formal_contract
+    attributes:
+      label: Formal Specification Impact
+      description: Does this modify schemas, IR primitives, or verification criteria?
+    validations:
+      required: true
+  - type: textarea
+    id: evaluation_plan
+    attributes:
+      label: Evaluation and Verification Plan
+      description: How will the hypothesis be tested with deterministic ablation controls?
+    validations:
+      required: true

@@ -1,0 +1,65 @@
+# Code in Nothing: runtime-validated five-gene seed for the bounded CIN-Lab v0.1 pilot.
+api_version: cin.genome/v0.1
+seed_id: cin.seed.logic-int.001
+
+genome:
+  base:
+    organism_class: pure_integer_program
+    cin_ir_version: '0.1'
+    input_types: [Int, Int]
+    return_type: Int
+    starting_expression: { op: Arg, index: 0 }
+    allowed_primitives:
+      - Arg
+      - ConstInt
+      - Add
+      - Sub
+      - LessThan
+      - Equal
+      - If
+    allowed_constants: [-1, 0, 1]
+    max_ast_depth: 8
+    max_ast_nodes: 64
+    invariants: [typed, pure, deterministic, resource_bounded]
+
+  driver:
+    proposal_policy: typed_grammar_hybrid
+    mutation_operators:
+      replace_subtree: 0.35
+      substitute_primitive: 0.20
+      insert_conditional: 0.20
+      compose_subtree: 0.15
+      enumerate_bounded: 0.10
+    adaptation: verified_reward_update
+    meta_mutation: gated_offspring_only
+    reproduce: when_heritable_capability_verified
+    crossover: disabled
+
+  directive:
+    focus_world_families:
+      - arithmetic
+      - comparisons
+      - composition
+    optimize_for: [verified_correctness, reuse, search_cost]
+    proposals_per_epoch: 100
+    max_active_offspring: 2
+    exploration_bias: 0.30
+
+  maturity_point:
+    metric_policy_version: cin.maturity/v0.1
+    min_verified_task_specs: 12
+    min_verified_task_families: 3
+    sealed_transfer_tasks: 20
+    min_sealed_transfer_pass_rate: 0.80
+    min_reused_verified_abstractions: 2
+    require_regression_free_replay: true
+    active_contract_immutable: true
+
+  stop_station:
+    max_candidate_evaluations: 2000
+    max_epochs: 20
+    plateau_consecutive_epochs: 5
+    plateau_grace_epochs: 3
+    terminal_on_governor_violation: true
+    archive_on_stop: true
+    active_contract_immutable: true

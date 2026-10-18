@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/cin/growth-evidence.v0.1.schema.json",
+  "title": "CIN Growth Evidence v0.1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "cin.evidence/v0.1"
+    },
+    "proposal_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parent_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_ir_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_spec_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evaluator_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "ACCEPTED",
+        "REJECTED",
+        "INVALID",
+        "TIMEOUT",
+        "UNKNOWN"
+      ]
+    },
+    "gate_outcomes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "gate": {
+            "type": "string",
+            "enum": [
+              "validity",
+              "behavioral",
+              "regression",
+              "contribution"
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "PASS",
+              "FAIL",
+              "UNKNOWN"
+            ]
+          }
+        },
+        "required": [
+          "gate",
+          "outcome"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "candidate_evaluations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "interpreter_operations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cpu_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "candidate_evaluations",
+        "interpreter_operations",
+        "cpu_ms"
+      ],
+      "additionalProperties": false
+    },
+    "replay": {
+      "type": "object",
+      "properties": {
+        "rng_seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runtime_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_manifest_hash": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "rng_seed",
+        "runtime_version",
+        "artifact_manifest_hash"
+      ],
+      "additionalProperties": false
+    },
+    "evaluator_signature": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "proposal_hash",
+    "parent_hash",
+    "candidate_ir_hash",
+    "task_spec_hash",
+    "evaluator_version",
+    "outcome",
+    "gate_outcomes",
+    "resources",
+    "replay",
+    "evaluator_signature"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,44 @@
+name: Bug Report
+description: Report reproducible unexpected behavior, crash, or contract violation in CIN-Lab
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please note that CIN-Lab is a model-free research prototype with strict bounded invariants.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the bug.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment Details
+      description: Python version, OS platform, package version.
+      placeholder: "e.g., Python 3.12.2 on macOS 15.0, cin 0.1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction Command
+      description: Exact CLI command or script snippet to reproduce.
+      placeholder: "python -m cin demo --seed 0 --max-evals 250 --output runs/fail"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs Observed Behavior
+      description: What was expected according to the contract vs what happened.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs / Stack Trace
+      description: Paste any error outputs or tracebacks here.
+      render: shell

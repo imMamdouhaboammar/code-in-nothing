@@ -1,0 +1,52 @@
+{
+  "archive_chain_valid": true,
+  "candidate_evaluations": 85,
+  "experiment_version": "cin-lab/0.1",
+  "finite_domain_only": true,
+  "initial_world_status": "ADMITTED",
+  "language_model_calls": 0,
+  "learned_program_ir": {
+    "args": [
+      {
+        "args": [
+          {
+            "index": 0,
+            "op": "Arg"
+          },
+          {
+            "index": 1,
+            "op": "Arg"
+          }
+        ],
+        "op": "LessThan"
+      },
+      {
+        "index": 1,
+        "op": "Arg"
+      },
+      {
+        "index": 0,
+        "op": "Arg"
+      }
+    ],
+    "op": "If"
+  },
+  "maturity_status": "NOT_EVALUATED",
+  "max_epoch_proposals": 100,
+  "max_evaluations": 250,
+  "offspring_count": 1,
+  "offspring_inherited_skill_hashes": [
+    "2a4a39647279cef199e96ec1c6c11bbdd90c3d50547067c4afed83cc883b2f43"
+  ],
+  "parent_skill_hashes": [
+    "2a4a39647279cef199e96ec1c6c11bbdd90c3d50547067c4afed83cc883b2f43"
+  ],
+  "parents_contracts_equal": true,
+  "scientific_self_improvement": "NOT_ESTABLISHED",
+  "sealed_transfer_evaluation": "NOT_RUN",
+  "seed": 0,
+  "stop_reason": "EXPERIMENT_COMPLETE",
+  "verified_capabilities": 1,
+  "verified_world_specs": 2,
+  "world_mutation_admitted": true
+}
