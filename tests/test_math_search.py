@@ -9,7 +9,7 @@ import pytest
 
 from cin.contracts import ContractError, load_genome, load_world, validate_world
 from cin.ir import Limits, canonical_hash, check_tree, run_ir
-from cin.search import candidate_stream
+from cin.search import SearchStats, candidate_stream
 from cin.worlds import check_formula, verify_program
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,8 +79,13 @@ def test_signed_direction_and_ties_are_mathematically_constrained():
 
 
 def test_cost_layers_determinism_and_no_duplicate_asts():
-    first = list(candidate_stream(BASE["starting_expression"], BASE, seed=3, max_proposals=250))
+    stats = SearchStats()
+    first = list(
+        candidate_stream(BASE["starting_expression"], BASE, seed=3, max_proposals=250, stats=stats)
+    )
     replay = list(candidate_stream(BASE["starting_expression"], BASE, seed=3, max_proposals=250))
+    assert 0 < stats.attempted_shapes <= 25000
+    assert stats.integer_representatives >= 250
     assert len(first) == 250
     assert [p.expression for p in first] == [p.expression for p in replay]
     assert len({canonical_hash(p.expression) for p in first}) == len(first)
