@@ -1,12 +1,17 @@
-"""Deterministic typed structural exploration; no task answers or pretrained models."""
+"""Deterministic cost-layered typed search without task or verifier feedback."""
 
 from __future__ import annotations
 
+from collections import defaultdict
 from collections.abc import Iterator
 from dataclasses import dataclass
 from itertools import product
 
-from .ir import IRViolation, canonical_hash, check_tree
+from .ir import IRViolation, Limits, canonical_hash, check_tree, run_ir
+
+# Search-only probes are fixed independently of all formal worlds and targets.
+# Equivalence here is a heuristic for pruning, never a correctness certificate.
+_PROBES = tuple(product(range(-3, 4), repeat=2))
 
 
 @dataclass(frozen=True)
@@ -17,57 +22,152 @@ class Proposal:
     rng_seed: int
 
 
+@dataclass(frozen=True)
+class _Entry:
+    expression: dict
+    values: tuple
+    depth: int
+
+
+def _size_depth(node: dict) -> tuple[int, int]:
+    children = node.get("args", ())
+    if not children:
+        return 1, 1
+    dimensions = [_size_depth(child) for child in children]
+    return 1 + sum(size for size, _ in dimensions), 1 + max(depth for _, depth in dimensions)
+
+
 def candidate_stream(
     parent: dict, base: dict, seed: int = 0, max_proposals: int = 2000
 ) -> Iterator[Proposal]:
-    """Small bounded grammar enumerator + compositional perturbation of the parent.
+    """Enumerate typed expressions by AST node count, with bounded work.
 
-    Seed determines a stable traversal permutation of binary operations without
-    changing the coverage of the small core grammar.
+    Int and Bool subterms are memoized by fixed-probe observational signatures.
+    All externally yielded candidates are valid Int trees, and no world, task
+    answer, verifier witness, or failed-candidate feedback enters this search.
+    Finite probes may conflate distinct functions outside the probes: only the
+    independent world verifier may declare a candidate correct.
     """
+    if type(max_proposals) is not int or max_proposals < 1:
+        return
+    if type(seed) is not int or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    check_tree(parent, base)
     parent_hash = canonical_hash(parent)
-    seen = {parent_hash}
+    limits = Limits(
+        max_depth=base["max_ast_depth"],
+        max_nodes=base["max_ast_nodes"],
+        max_ops=max(512, base["max_ast_nodes"]),
+    )
+    bank: dict[str, dict[int, list[_Entry]]] = {
+        "Int": defaultdict(list),
+        "Bool": defaultdict(list),
+    }
+    signatures: dict[str, set[tuple]] = {"Int": set(), "Bool": set()}
+    allowed = set(base["allowed_primitives"])
+    max_depth = base["max_ast_depth"]
+    max_nodes = base["max_ast_nodes"]
+    # Count attempted intermediate shapes too, including discarded duplicates.
+    # This prevents a small output budget from hiding unbounded internal work.
+    max_shapes = max(3000, 100 * max_proposals)
+    shapes = 0
     produced = 0
-    leaves = [{"op": "Arg", "index": 0}, {"op": "Arg", "index": 1}]
-    leaves.extend({"op": "ConstInt", "value": x} for x in base["allowed_constants"])
 
-    def candidates():
-        for leaf in leaves:
-            yield (leaf, "replace_subtree")
-        for op in ("Add", "Sub") if seed % 2 == 0 else ("Sub", "Add"):
-            for a, b in product(leaves, repeat=2):
-                yield ({"op": op, "args": [a, b]}, "compose_subtree")
-        for op in ("LessThan", "Equal"):
-            for a, b in product(leaves, repeat=2):
-                predicate = {"op": op, "args": [a, b]}
-                for then, otherwise in product(leaves, repeat=2):
-                    yield ({"op": "If", "args": [predicate, then, otherwise]}, "insert_conditional")
-        # Parent-based transformations, not unbounded source-code editing.
-        for leaf in leaves:
-            for op in ("Add", "Sub"):
-                yield ({"op": op, "args": [parent, leaf]}, "compose_subtree")
-                yield ({"op": op, "args": [leaf, parent]}, "compose_subtree")
-        for a, b in product(leaves[:2], repeat=2):
-            for leaf in leaves:
-                yield (
-                    {"op": "If", "args": [{"op": "LessThan", "args": [a, b]}, parent, leaf]},
-                    "insert_conditional",
-                )
-                yield (
-                    {"op": "If", "args": [{"op": "LessThan", "args": [a, b]}, leaf, parent]},
-                    "insert_conditional",
-                )
+    def add(kind: str, size: int, expr: dict, values: tuple, depth: int) -> bool:
+        if depth > max_depth or values in signatures[kind]:
+            return False
+        if kind == "Bool" and len(signatures["Bool"]) >= max_proposals:
+            return False
+        signatures[kind].add(values)
+        bank[kind][size].append(_Entry(expr, values, depth))
+        return True
 
-    for expression, operator in candidates():
-        hash_ = canonical_hash(expression)
-        if hash_ in seen:
+    # Parent is available as a reusable expression at its honest syntax cost.
+    size, depth = _size_depth(parent)
+    try:
+        observations = tuple(run_ir(parent, x, y, limits) for x, y in _PROBES)
+    except IRViolation:
+        observations = None
+    if observations is not None and size <= max_nodes:
+        add("Int", size, parent, observations, depth)
+
+    leaves = []
+    if "Arg" in allowed:
+        leaves.extend({"op": "Arg", "index": i} for i in range(2))
+    if "ConstInt" in allowed:
+        leaves.extend({"op": "ConstInt", "value": c} for c in base["allowed_constants"])
+    for leaf in leaves:
+        observations = tuple(
+            (x, y)[leaf["index"]] if leaf["op"] == "Arg" else leaf["value"]
+            for x, y in _PROBES
+        )
+        if add("Int", 1, leaf, observations, 1):
+            produced += 1
+            yield Proposal(leaf, "replace_subtree", parent_hash, seed)
+            if produced >= max_proposals:
+                return
+
+    arithmetic = ("Add", "Sub") if seed % 2 == 0 else ("Sub", "Add")
+    operators = tuple(op for op in (*arithmetic, "LessThan", "Equal") if op in allowed)
+    for size in range(2, max_nodes + 1):
+        # Every binary child has strictly lower cost than its parent.
+        for left_size in range(1, size - 1):
+            right_size = size - 1 - left_size
+            for left in bank["Int"][left_size]:
+                for right in bank["Int"][right_size]:
+                    depth = 1 + max(left.depth, right.depth)
+                    if depth > max_depth:
+                        continue
+                    for op in operators:
+                        shapes += 1
+                        if shapes > max_shapes:
+                            return
+                        if op == "Add":
+                            values = tuple(a + b for a, b in zip(left.values, right.values))
+                        elif op == "Sub":
+                            values = tuple(a - b for a, b in zip(left.values, right.values))
+                        elif op == "LessThan":
+                            values = tuple(a < b for a, b in zip(left.values, right.values))
+                        else:
+                            values = tuple(a == b for a, b in zip(left.values, right.values))
+                        kind = "Bool" if op in ("LessThan", "Equal") else "Int"
+                        expr = {"op": op, "args": [left.expression, right.expression]}
+                        if not add(kind, size, expr, values, depth):
+                            continue
+                        if kind == "Int":
+                            check_tree(expr, base)
+                            produced += 1
+                            yield Proposal(expr, "compose_subtree", parent_hash, seed)
+                            if produced >= max_proposals:
+                                return
+
+        if "If" not in allowed:
             continue
-        seen.add(hash_)
-        try:
-            check_tree(expression, base)
-        except IRViolation:
-            continue
-        yield Proposal(expression, operator, parent_hash, seed)
-        produced += 1
-        if produced >= max_proposals:
-            break
+        # Cost fairness includes both branches and the condition.
+        for pred_size in range(1, size - 2):
+            for then_size in range(1, size - 1 - pred_size):
+                else_size = size - 1 - pred_size - then_size
+                for pred in bank["Bool"][pred_size]:
+                    for yes in bank["Int"][then_size]:
+                        for no in bank["Int"][else_size]:
+                            depth = 1 + max(pred.depth, yes.depth, no.depth)
+                            if depth > max_depth:
+                                continue
+                            shapes += 1
+                            if shapes > max_shapes:
+                                return
+                            values = tuple(
+                                a if p else b
+                                for p, a, b in zip(pred.values, yes.values, no.values)
+                            )
+                            expr = {
+                                "op": "If",
+                                "args": [pred.expression, yes.expression, no.expression],
+                            }
+                            if not add("Int", size, expr, values, depth):
+                                continue
+                            check_tree(expr, base)
+                            produced += 1
+                            yield Proposal(expr, "insert_conditional", parent_hash, seed)
+                            if produced >= max_proposals:
+                                return
