@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "skills": {
+    "alife": {
+      "source": "plurigrid/asi",
+      "sourceType": "github",
+      "skillPath": "skills/alife/SKILL.md",
+      "computedHash": "0f0cc9b854cb80e9e3233485433d7db8ae9979ee8b10bcc7bb5cd03b3a48422d"
+    },
+    "ast-grep": {
+      "source": "ast-grep/agent-skill",
+      "sourceType": "github",
+      "skillPath": "ast-grep/skills/ast-grep/SKILL.md",
+      "computedHash": "472c7cd092f9fad72e0ad0c58b5f6af627844730ecc420c009e25a835a5d6e81"
+    },
+    "experimental-design": {
+      "source": "K-Dense-AI/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/experimental-design/SKILL.md",
+      "computedHash": "cd1f2d677225a8e641a1e9aa40b608561877e584c8c5d916fdc83f12e5199dd0"
+    },
+    "firecrawl-research-papers": {
+      "source": "firecrawl/firecrawl-workflows",
+      "sourceType": "github",
+      "skillPath": "skills/firecrawl-research-papers/SKILL.md",
+      "computedHash": "7dbbebe28e6984ea78e573a170015132d719d39decb8d9fb3f5eefc86fde5b15"
+    },
+    "hypothesis-generation": {
+      "source": "K-Dense-AI/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/hypothesis-generation/SKILL.md",
+      "computedHash": "2bc4af9410e78803c6656a4815b17718a4ccb10a131e4ec7430c3e9666f8a036"
+    },
+    "networkx": {
+      "source": "K-Dense-AI/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/networkx/SKILL.md",
+      "computedHash": "eb067ee90cec53afd44a4fca3b0925d6d31b7c535ccd053a55814396ea992283"
+    },
+    "peer-review": {
+      "source": "K-Dense-AI/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/peer-review/SKILL.md",
+      "computedHash": "863fe9750bb5cc92accf44cece3a935b84cb182f5d38408baf9bcc53ec340e4f"
+    },
+    "pymoo": {
+      "source": "kalarislabs/research-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/pymoo/SKILL.md",
+      "computedHash": "fc9f7707c74b2af78ee0de1ce062deb4c4bfc64503923304a7bacc503b1d12c7"
+    },
+    "pytest-coverage": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/pytest-coverage/SKILL.md",
+      "computedHash": "06481f4bbc6d80a52091ec9ba5856eb1dc5f80cbabb40fd4ad02aaea3085a0dc"
+    },
+    "python-testing-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/python-development/skills/python-testing-patterns/SKILL.md",
+      "computedHash": "a0c0cd2841eb80fc082b360ebbee1ad69275234229e525a6da1baaee3f5a52bd"
+    },
+    "scientific-critical-thinking": {
+      "source": "K-Dense-AI/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/scientific-critical-thinking/SKILL.md",
+      "computedHash": "5f432576778e12aa04e722fa56c7c801cd644beed162d1c516b43721e5469d69"
+    },
+    "scientific-thinking-scholar-evaluation": {
+      "source": "affaan-m/ecc",
+      "sourceType": "github",
+      "skillPath": "skills/scientific-thinking-scholar-evaluation/SKILL.md",
+      "computedHash": "9783c40ddf1f97572876a4b0e6def62f349f5e74ccba18110ff4fca2c67c18e0"
+    },
+    "scientific-writing": {
+      "source": "K-Dense-AI/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/scientific-writing/SKILL.md",
+      "computedHash": "2d2433026204b29df1de362af24e0279e0a8fe927cf34eb6b19b950b94ad4636"
+    },
+    "statistical-analysis": {
+      "source": "K-Dense-AI/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/statistical-analysis/SKILL.md",
+      "computedHash": "58fe533547c45096fe784f043609fe07742b5390f056ce850ab9ecb239f04c73"
+    },
+    "statistical-power": {
+      "source": "K-Dense-AI/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/statistical-power/SKILL.md",
+      "computedHash": "fb1d22adbc6a1237d3c680f34f3cd377bcf1786edec830b44f249178186078d9"
+    },
+    "symbolic-execution-tools": {
+      "source": "yaklang/hack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/symbolic-execution-tools/SKILL.md",
+      "computedHash": "32cc7f194f15cb85627bdec2e9a2e3210807d19dcc677a0b12f9cba4baead6a7"
+    },
+    "sympy": {
+      "source": "K-Dense-AI/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/sympy/SKILL.md",
+      "computedHash": "d9589facb7226c0ff7e357eb1ab9ceb7ea89f23b1a34c55f44f1773f4595c8f0"
+    },
+    "uv": {
+      "source": "astral-sh/claude-code-plugins",
+      "sourceType": "github",
+      "skillPath": "plugins/astral/skills/uv/SKILL.md",
+      "computedHash": "b1ca9e9826d906f6ee6ea172da50018ec13bb622ac9ba7204bda8b10e7fc8d0a"
+    },
+    "what-if-oracle": {
+      "source": "K-Dense-AI/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/what-if-oracle/SKILL.md",
+      "computedHash": "3a7bb699afd9d33f811fcdc7b3beccc4ba71f1b4abbb0c055fed6d70a713b31b"
+    },
+    "writing-lean-proofs": {
+      "source": "trailofbits/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/writing-lean-proofs/skills/writing-lean-proofs/SKILL.md",
+      "computedHash": "a5aeca21e368bb6b0a625ed22b15f7da1daf1fc4165ca83642252c6317ebfddf"
+    }
+  }
+}
