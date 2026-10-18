@@ -79,11 +79,21 @@ def _inputs(world, max_cases: int):
         yield pair
 
 
+
+def _require_matching_signature(world: dict, base: dict) -> None:
+    """Older finite worlds are strictly two-input contracts, even with IR v0.2."""
+    if (
+        world["input_types"] != base.get("input_types")
+        or world["return_type"] != base.get("return_type")
+    ):
+        raise WorldViolation("genome and world function signatures differ")
+
 def verify_program(
     program: dict, world: dict, base: dict, limits: Limits = Limits(), max_cases: int = 4096
 ) -> Verdict:
     try:
         validate_world(world)
+        _require_matching_signature(world, base)
         check_tree(program, base)
         points = list(_inputs(world, max_cases))
     except (ContractError, IRViolation, WorldViolation) as exc:
@@ -112,6 +122,7 @@ def admit_world(
     spec_hash = canonical_hash(world)
     try:
         validate_world(world)
+        _require_matching_signature(world, base)
         points = list(_inputs(world, max_cases))
         if not any(
             check_formula(world["precondition"], {"x": x, "y": y, "result": 0}) for x, y in points
