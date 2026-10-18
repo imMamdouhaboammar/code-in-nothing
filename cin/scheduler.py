@@ -122,15 +122,11 @@ class FiniteScheduler:
         acquired_hash = None
         reason = "WORLD_NOT_ADMITTED"
         if admitted.status == "ADMITTED":
-            seed_verdict = self._verify_governed(
-                governor, self.base["starting_expression"]
-            )
+            seed_verdict = self._verify_governed(governor, self.base["starting_expression"])
             if seed_verdict.status == "PASS":
                 reason = "SEED_ALREADY_SOLVED"
             else:
-                reason, epochs, evaluated, epoch_evaluations, acquired_hash = self._search(
-                    governor
-                )
+                reason, epochs, evaluated, epoch_evaluations, acquired_hash = self._search(governor)
 
         governor.stop(_ACTOR, reason)
         report = {
