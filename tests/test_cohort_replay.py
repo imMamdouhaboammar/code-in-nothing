@@ -235,10 +235,16 @@ def test_version_rejection_is_not_only_hash_mismatch(tmp_path):
 def test_normalization_preserves_scientific_resource_counters(tmp_path):
     run_pilot(tmp_path)
     journal = tmp_path / "events.jsonl"
-    evidence = next(json.loads(line) for line in journal.read_bytes().splitlines() if b'"GROWTH_EVIDENCE"' in line)
+    evidence = next(
+        json.loads(line)
+        for line in journal.read_bytes().splitlines()
+        if b'"GROWTH_EVIDENCE"' in line
+    )
     original = evidence["payload"]["resources"]
     _, trace = Archive.read_normalized_trace(tmp_path)
-    normalized = next(event["payload"]["resources"] for event in trace if event["kind"] == "GROWTH_EVIDENCE")
+    normalized = next(
+        event["payload"]["resources"] for event in trace if event["kind"] == "GROWTH_EVIDENCE"
+    )
     assert "cpu_ms" not in normalized
     assert normalized["candidate_evaluations"] == original["candidate_evaluations"]
     assert normalized["interpreter_operations"] == original["interpreter_operations"]
