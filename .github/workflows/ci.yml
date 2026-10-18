@@ -38,6 +38,19 @@ jobs:
         run: |
           python -m pytest -q
 
+      - name: Run predefined five-seed experimental ablation
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        run: |
+          python experiments/run_guided.py --seeds 0 1 2 3 4 --proposals 250 --output runs/ci-guided-ablation.json
+
+      - name: Publish complete experimental ablation record
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cin-guided-ablation
+          path: runs/ci-guided-ablation.json
+          if-no-files-found: error
+
       - name: Reproduce tier-1 mathematical synthesis evidence
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         run: python experiments/run_m1.py
