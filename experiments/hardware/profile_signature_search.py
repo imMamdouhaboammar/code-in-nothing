@@ -20,9 +20,9 @@ from copy import deepcopy
 from dataclasses import asdict
 from pathlib import Path
 
+from cin import search as search_module
 from cin.contracts import load_genome, load_world
 from cin.ir import canonical_hash, run_ir
-from cin.search import SearchStats, candidate_stream
 from cin.worlds import check_formula, verify_program
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -133,9 +133,7 @@ def _signature_generator_lines() -> list[int]:
     This is a cProfile source-attribution diagnostic, not a complete sum of
     tuple allocation, hashing, dispatch or offload-eligible elapsed time.
     """
-    import cin.search as search
-
-    source = Path(search.__file__).read_text(encoding="utf-8")
+    source = Path(search_module.__file__).read_text(encoding="utf-8")
     lines = []
     for node in ast.walk(ast.parse(source)):
         if not isinstance(node, ast.Assign):
@@ -158,9 +156,7 @@ def _signature_generator_lines() -> list[int]:
 
 def _profile_diagnostic(profiler: cProfile.Profile, trace_sha256: str) -> dict:
     """Report only instrumented function self-time, never an FPGA speedup."""
-    import cin.search as search
-
-    search_path = Path(search.__file__).resolve()
+    search_path = Path(search_module.__file__).resolve()
     signature_lines = set(_signature_generator_lines())
     rows = []
     signature_self_ns = 0
@@ -222,7 +218,7 @@ def run_workload(
         local_base["cin_ir_version"] = "0.2"
         local_base["input_types"] = ["Int"] * workload["arity"]
 
-    stats = SearchStats()
+    stats = search_module.SearchStats()
     trace = hashlib.sha256()
     count = 0
     screen_cases = 0
@@ -240,7 +236,7 @@ def run_workload(
     if profiler is not None:
         profiler.enable()
     try:
-        stream = candidate_stream(
+        stream = search_module.candidate_stream(
             local_base["starting_expression"],
             local_base,
             seed=workload["seed"],
