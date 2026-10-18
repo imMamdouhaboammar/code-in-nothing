@@ -17,6 +17,7 @@ This is the starting point for developers, reviewers and researchers. **The exec
 | [Experimental protocol](research/EXPERIMENTS.md) | Hypotheses, baselines, budget accounting, holdout and metrics | Pre-registration proposal |
 | [Phases and gates](roadmap/PHASES.md) | Delivery sequence, stop/go criteria and explicit non-goals | Product and research roadmap |
 | [Next implementation plan](plans/2026-10-18-cin-next-phases.md) | Reviewable engineering steps and focused tests | Plan; work not executed |
+| [Phase P1 research & architecture](research/2026-10-18-cin-p1-research-and-architecture.md) | Discovery, IR search relevance, and 3-vector architecture evaluation | Research & architectural evaluation |
 | [Review ledger](reviews/2026-10-18-design-review.md) | Evidence, correctness gaps, contradictions and decisions | Repository inspection |
 | [Domain vocabulary](../CONTEXT.md) | Unambiguous naming without implementation details | Canonical terminology |
 | [ADRs](adr/0001-isolated-verification.md) | Trade-offs considered and frozen architectural decisions | Decision history |
