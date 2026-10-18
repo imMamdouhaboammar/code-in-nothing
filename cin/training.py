@@ -73,6 +73,14 @@ class PublicTrainingPanel:
         return json.loads(self._world_bytes)
 
 
+@dataclass
+class GuidedStats:
+    """Measured bounded frontier-selection and mutation attempts."""
+
+    selection_operations: int = 0
+    mutation_attempts: int = 0
+
+
 @dataclass(frozen=True)
 class TrainingFitness:
     candidate_hash: str
@@ -218,7 +226,9 @@ class GuidedFrontier:
                 break
         self._entries = retained
 
-    def select(self, *, excluded: set[str] | None = None) -> dict:
+    def select(
+        self, *, excluded: set[str] | None = None, stats: GuidedStats | None = None
+    ) -> dict:
         eligible = (
             (key, item)
             for key, item in self._entries.items()
@@ -230,9 +240,13 @@ class GuidedFrontier:
         )
         if not ranked:
             raise ValueError("frontier has no unexpanded parent")
+        if stats is not None:
+            stats.selection_operations += len(self._entries)
         return deepcopy(ranked[0][1][0])
 
-    def neighbors(self, parent: dict) -> tuple[dict, ...]:
+    def neighbors(
+        self, parent: dict, *, stats: GuidedStats | None = None
+    ) -> tuple[dict, ...]:
         """Deterministic bounded typed structural mutations of the selected parent."""
         check_tree(parent, self.base)
         arity = len(self.base.get("input_types", ("Int", "Int")))
@@ -257,6 +271,8 @@ class GuidedFrontier:
             for leaf in leaves:
                 variants.append({"op": "If", "args": [condition, deepcopy(parent), leaf]})
                 variants.append({"op": "If", "args": [condition, leaf, deepcopy(parent)]})
+        if stats is not None:
+            stats.mutation_attempts += len(variants)
         Random(self.seed + int(canonical_hash(parent)[:12], 16)).shuffle(variants)
         output = []
         seen = {canonical_hash(parent)}
