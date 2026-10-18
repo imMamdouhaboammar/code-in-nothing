@@ -107,8 +107,14 @@ def evaluate_training(
             raise IRViolation("training world and genome signatures differ")
     except IRViolation:
         return TrainingFitness(
-            candidate_hash, panel.digest, "INVALID", 0, 0, None,
-            tuple(None for _ in panel.cases), Cost(),
+            candidate_hash,
+            panel.digest,
+            "INVALID",
+            0,
+            0,
+            None,
+            tuple(None for _ in panel.cases),
+            Cost(),
         )
 
     world = panel.world
@@ -129,7 +135,12 @@ def evaluate_training(
             operations += measured[0]
             errors.extend([None] * (len(panel.cases) - len(errors)))
             return TrainingFitness(
-                candidate_hash, panel.digest, "UNKNOWN", applicable, satisfied, None,
+                candidate_hash,
+                panel.digest,
+                "UNKNOWN",
+                applicable,
+                satisfied,
+                None,
                 tuple(errors),
                 Cost(
                     training_cases=attempted,
@@ -144,8 +155,13 @@ def evaluate_training(
         errors.append(0 if ok else 1)
     status = "COMPLETE" if applicable else "VACUOUS"
     return TrainingFitness(
-        candidate_hash, panel.digest, status, applicable, satisfied,
-        satisfied / applicable if applicable else None, tuple(errors),
+        candidate_hash,
+        panel.digest,
+        status,
+        applicable,
+        satisfied,
+        satisfied / applicable if applicable else None,
+        tuple(errors),
         Cost(
             training_cases=attempted,
             training_interpreter_operations=operations,
@@ -220,8 +236,7 @@ class GuidedFrontier:
         if "Arg" in allowed:
             leaves.extend({"op": "Arg", "index": i} for i in range(arity))
         if "ConstInt" in allowed:
-            leaves.extend({"op": "ConstInt", "value": c}
-                          for c in self.base["allowed_constants"])
+            leaves.extend({"op": "ConstInt", "value": c} for c in self.base["allowed_constants"])
         leaves = leaves[:16]
         variants: list[dict] = []
         for leaf in leaves:
