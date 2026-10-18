@@ -21,6 +21,7 @@ This is the starting point for developers, reviewers and researchers. **The exec
 | [Phase P1 research & architecture](research/2026-10-18-cin-p1-research-and-architecture.md) | Discovery, IR search relevance, and 3-vector architecture evaluation | Research & architectural evaluation |
 | [P1 evidence decisions](research/2026-10-18-cin-p1-evidence-decisions.md) | Live baseline, primary scientific sources, total-cost controls and next gates | Scoped research and implementation evidence |
 | [ADR 0007](adr/0007-manifest-bound-completed-run-replay.md) | Deterministic manifest and completed-run replay boundary | Architectural decision; P1-01 only |
+| [ADR 0008](adr/0008-finite-epochs-and-resource-reservations.md) | In-memory finite epochs, witnessed work counters, reservation policy and incomplete P1 gates | Proposed P1-02 slice |
 | [System architecture](architecture/SYSTEM.md) | Components, ownership, data flow, state and deployment | Architecture proposal plus runtime map |
 | [Evolution protocol](architecture/EVOLUTION.md) | Individual growth, world evolution, reproduction, maturity, stop | Protocol proposal |
 | [Contracts](architecture/CONTRACTS.md) | Existing v0.1 functions and future APIs, status semantics, compatibility | Versioned interface contract |

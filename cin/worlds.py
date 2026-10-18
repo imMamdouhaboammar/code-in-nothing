@@ -12,7 +12,7 @@ from itertools import product
 
 from .contracts import ContractError, validate_world
 from .ir import IRViolation, Limits, canonical_hash, check_tree, run_ir
-from .search import candidate_stream
+from .search import SearchStats, candidate_stream
 
 
 class WorldViolation(ValueError):
@@ -35,6 +35,16 @@ class Admission:
     witness_hash: str | None
     reason: str
     candidates_checked: int
+
+
+@dataclass
+class AdmissionStats:
+    """Public verifier-side work counters; never expose witness expressions."""
+
+    verifier_calls: int = 0
+    interpreter_operations: int = 0
+    search_shapes: int = 0
+    probe_evaluations: int = 0
 
 
 def _term(v, values):
@@ -116,7 +126,11 @@ def verify_program(
 
 
 def admit_world(
-    world: dict, base: dict, max_proposals: int = 1000, max_cases: int = 4096
+    world: dict,
+    base: dict,
+    max_proposals: int = 1000,
+    max_cases: int = 4096,
+    stats: AdmissionStats | None = None,
 ) -> Admission:
     spec_hash = canonical_hash(world)
     try:
@@ -130,20 +144,33 @@ def admit_world(
     except (ContractError, WorldViolation) as exc:
         return Admission("REJECTED", spec_hash, None, str(exc), 0)
     checked = 0
-    # The verifier-private witness is never an argument to candidate_stream.
-    for proposal in candidate_stream(
-        {"op": "Arg", "index": 0}, base, seed=0, max_proposals=max_proposals
-    ):
-        checked += 1
-        verdict = verify_program(proposal.expression, world, base, max_cases=max_cases)
-        if verdict.status == "PASS":
-            return Admission(
-                "ADMITTED",
-                spec_hash,
-                canonical_hash(proposal.expression),
-                "finite-domain exhaustive witness",
-                checked,
-            )
+    search_stats = SearchStats()
+    # Only aggregate counters and the witness digest cross the verifier boundary.
+    try:
+        for proposal in candidate_stream(
+            {"op": "Arg", "index": 0},
+            base,
+            seed=0,
+            max_proposals=max_proposals,
+            stats=search_stats,
+        ):
+            checked += 1
+            verdict = verify_program(proposal.expression, world, base, max_cases=max_cases)
+            if stats is not None:
+                stats.verifier_calls += 1
+                stats.interpreter_operations += verdict.operations
+            if verdict.status == "PASS":
+                return Admission(
+                    "ADMITTED",
+                    spec_hash,
+                    canonical_hash(proposal.expression),
+                    "finite-domain exhaustive witness",
+                    checked,
+                )
+    finally:
+        if stats is not None:
+            stats.search_shapes += search_stats.attempted_shapes
+            stats.probe_evaluations += search_stats.probe_evaluations
     return Admission(
         "UNKNOWN", spec_hash, None, "no witness within bounded search; not admitted", checked
     )
