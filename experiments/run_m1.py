@@ -64,9 +64,9 @@ def run_task(filename: str, budget: int, base: dict) -> dict:
                     "cpu_seconds": round(time.process_time() - start, 3),
                     "world_admission": "not_run",
                     "internal_shape_attempts": stats.attempted_shapes,
-        "observational_prunes": stats.observational_prunes,
-        "integer_representatives": stats.integer_representatives,
-        "boolean_representatives": stats.boolean_representatives,
+                    "observational_prunes": stats.observational_prunes,
+                    "integer_representatives": stats.integer_representatives,
+                    "boolean_representatives": stats.boolean_representatives,
                 }
     return {
         "task_id": world["id"],
@@ -81,9 +81,9 @@ def run_task(filename: str, budget: int, base: dict) -> dict:
         "cpu_seconds": round(time.process_time() - start, 3),
         "world_admission": "not_run",
         "internal_shape_attempts": stats.attempted_shapes,
-                    "observational_prunes": stats.observational_prunes,
-                    "integer_representatives": stats.integer_representatives,
-                    "boolean_representatives": stats.boolean_representatives,
+        "observational_prunes": stats.observational_prunes,
+        "integer_representatives": stats.integer_representatives,
+        "boolean_representatives": stats.boolean_representatives,
     }
 
 
