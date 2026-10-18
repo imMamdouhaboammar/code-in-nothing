@@ -42,6 +42,20 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         run: python experiments/run_m1.py
 
+      - name: Produce frozen H0 CPU profiling evidence
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        run: |
+          python -m experiments.hardware.profile_signature_search --repetitions 3 --output h0-profile.json
+          python -c 'import json; x=json.load(open("h0-profile.json")); print(json.dumps({"protocol":x["protocol"],"manifest":x["manifest_sha256"],"workloads":[{"id":r["id"],"status":r["samples"][0]["status"],"median_total_wall_ns":r["median_total_wall_ns"],"amdahl_search_ceiling":r["amdahl_search_ceiling"]} for r in x["runs"]]},sort_keys=True))'
+
+      - name: Preserve H0 raw profiling evidence
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: h0-cpu-profile-python312
+          path: h0-profile.json
+          if-no-files-found: error
+
       - name: Run demonstration experiment (canonical baseline)
         run: |
           python -m cin demo --seed 0 --max-evals 250 --output runs/ci-baseline

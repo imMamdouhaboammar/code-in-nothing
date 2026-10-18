@@ -1,0 +1,72 @@
+{
+  "protocol": "cin.hardware.h0.manifest/v0.1",
+  "source_commit": "7d23270771f123e4b8fa7863cd8cfc68e11dab8f",
+  "genome": "examples/seed-genome.v0.1.yaml",
+  "screen_points": [
+    [
+      -4,
+      -1
+    ],
+    [
+      1,
+      -4
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      -2,
+      3
+    ],
+    [
+      3,
+      -2
+    ],
+    [
+      4,
+      4
+    ]
+  ],
+  "workloads": [
+    {
+      "id": "max2",
+      "kind": "world",
+      "world": "world-max2.v0.1.yaml",
+      "arity": 2,
+      "seed": 0,
+      "max_proposals": 250
+    },
+    {
+      "id": "min2",
+      "kind": "world",
+      "world": "world-min2.v0.1.yaml",
+      "arity": 2,
+      "seed": 0,
+      "max_proposals": 250
+    },
+    {
+      "id": "absdiff",
+      "kind": "world",
+      "world": "world-absdiff.v0.2.yaml",
+      "arity": 2,
+      "seed": 0,
+      "max_proposals": 1200
+    },
+    {
+      "id": "exhaustion",
+      "kind": "world",
+      "world": "world-min2.v0.1.yaml",
+      "arity": 2,
+      "seed": 0,
+      "max_proposals": 1
+    },
+    {
+      "id": "search3",
+      "kind": "search_only",
+      "arity": 3,
+      "seed": 0,
+      "max_proposals": 80
+    }
+  ]
+}
