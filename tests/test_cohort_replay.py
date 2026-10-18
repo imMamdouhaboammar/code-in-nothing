@@ -130,7 +130,7 @@ def test_replay_detects_policy_drift_even_when_hashes_are_recomputed(tmp_path):
 
     from cin.evolution import replay_experiment
 
-    with pytest.raises(ValueError, match="divergence"):
+    with pytest.raises(ValueError, match="policy|divergence"):
         replay_experiment(tmp_path)
 
 
@@ -139,4 +139,123 @@ def test_legacy_archive_chain_works_but_cannot_claim_replay(tmp_path):
     archive.append("BIRTH", {"organism_id": "legacy"})
     assert Archive.verify_chain(archive.journal)
     with pytest.raises(ValueError):
+        Archive.read_normalized_trace(tmp_path)
+
+
+def test_manifest_writer_refuses_artifacts_its_reader_cannot_accept(tmp_path):
+    archive = Archive(tmp_path)
+    with pytest.raises(ValueError, match="manifest"):
+        archive.write_manifest({"oversized": "x" * (1_048_576 + 1)})
+    assert not (tmp_path / "events.jsonl").exists()
+
+
+def test_utf8_unicode_line_separator_survives_same_bytes_verification(tmp_path):
+    run_pilot(tmp_path)
+    journal = tmp_path / "events.jsonl"
+    events = [json.loads(line) for line in journal.read_bytes().splitlines()]
+    evidence = next(event for event in events if event["kind"] == "GROWTH_EVIDENCE")
+    evidence["payload"]["unicode_note"] = "عربي\u2028الاختبار"
+    rewrite_chain(journal, events)
+    assert Archive.verify_chain(journal)
+    _, trace = Archive.read_normalized_trace(tmp_path)
+    assert any(e["payload"].get("unicode_note") == "عربي\u2028الاختبار" for e in trace)
+
+
+def test_replay_rejects_rehashed_false_epoch_budget(tmp_path):
+    run_pilot(tmp_path)
+    manifest_path = tmp_path / "manifest.json"
+    manifest = json.loads(manifest_path.read_bytes())
+    manifest["configuration"]["resource_policy"]["epoch_proposals"] = 2
+    manifest_path.write_bytes(canonical_bytes(manifest) + b"\n")
+    journal = tmp_path / "events.jsonl"
+    events = [json.loads(line) for line in journal.read_bytes().splitlines()]
+    events[0]["payload"]["manifest_hash"] = canonical_hash(manifest)
+    rewrite_chain(journal, events)
+    from cin.evolution import replay_experiment
+
+    with pytest.raises(ValueError, match="policy"):
+        replay_experiment(tmp_path)
+
+
+def test_conflicting_organism_id_terminal_summary_is_rejected(tmp_path):
+    archive = Archive(tmp_path)
+    with pytest.raises(ValueError, match="organism_id"):
+        archive.terminal_archive("real", {"organism_id": "other", "stop_reason": "TEST"})
+    assert not archive.events
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"max_evals": 1.5},
+        {"max_evals": True},
+        {"world_evolution": 1},
+        {"inheritance": "false"},
+    ],
+)
+def test_experiment_rejects_invalid_manifest_policy_before_running(tmp_path, options):
+    with pytest.raises(ValueError):
+        Experiment(deepcopy(GENOME), deepcopy(WORLD), Archive(tmp_path), **options)
+
+
+def test_malformed_growth_resource_is_an_invalid_archive(tmp_path):
+    run_pilot(tmp_path)
+    journal = tmp_path / "events.jsonl"
+    events = [json.loads(line) for line in journal.read_bytes().splitlines()]
+    evidence = next(event for event in events if event["kind"] == "GROWTH_EVIDENCE")
+    evidence["payload"]["resources"] = []
+    rewrite_chain(journal, events)
+    with pytest.raises(ValueError):
+        Archive.read_normalized_trace(tmp_path)
+
+
+def test_extremely_nested_json_is_rejected_as_invalid_evidence(tmp_path):
+    archive = Archive(tmp_path)
+    archive.journal.write_bytes((b"[" * 1100) + (b"]" * 1100) + b"\n")
+    assert not Archive.verify_chain(archive.journal)
+    (tmp_path / "manifest.json").write_bytes((b"[" * 1100) + (b"]" * 1100) + b"\n")
+    with pytest.raises(ValueError):
+        Archive.read_normalized_trace(tmp_path)
+
+
+def test_version_rejection_is_not_only_hash_mismatch(tmp_path):
+    run_pilot(tmp_path)
+    manifest_path = tmp_path / "manifest.json"
+    manifest = json.loads(manifest_path.read_bytes())
+    manifest["schema_version"] = "cin.cohort/v999"
+    manifest_path.write_bytes(canonical_bytes(manifest) + b"\n")
+    journal = tmp_path / "events.jsonl"
+    events = [json.loads(line) for line in journal.read_bytes().splitlines()]
+    events[0]["payload"]["manifest_hash"] = canonical_hash(manifest)
+    rewrite_chain(journal, events)
+    with pytest.raises(ValueError, match="version"):
+        Archive.read_normalized_trace(tmp_path)
+
+
+def test_normalization_preserves_scientific_resource_counters(tmp_path):
+    run_pilot(tmp_path)
+    journal = tmp_path / "events.jsonl"
+    evidence = next(
+        json.loads(line)
+        for line in journal.read_bytes().splitlines()
+        if b'"GROWTH_EVIDENCE"' in line
+    )
+    original = evidence["payload"]["resources"]
+    _, trace = Archive.read_normalized_trace(tmp_path)
+    normalized = next(
+        event["payload"]["resources"] for event in trace if event["kind"] == "GROWTH_EVIDENCE"
+    )
+    assert "cpu_ms" not in normalized
+    assert normalized["candidate_evaluations"] == original["candidate_evaluations"]
+    assert normalized["interpreter_operations"] == original["interpreter_operations"]
+
+
+def test_event_count_limit_applies_before_materializing_all_events(tmp_path, monkeypatch):
+    from cin import archive as archive_module
+
+    run_pilot(tmp_path)
+    journal = tmp_path / "events.jsonl"
+    assert Archive.verify_chain(journal)
+    monkeypatch.setattr(archive_module, "_MAX_JOURNAL_EVENTS", 2)
+    with pytest.raises(ValueError, match="journal"):
         Archive.read_normalized_trace(tmp_path)

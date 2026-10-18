@@ -11,7 +11,8 @@ from .ir import canonical_bytes, canonical_hash
 
 COHORT_VERSION = "cin.cohort/v0.1"
 _MAX_MANIFEST_BYTES = 1_048_576
-_MAX_JOURNAL_BYTES = 67_108_864
+_MAX_JOURNAL_BYTES = 16_777_216
+_MAX_JOURNAL_EVENTS = 10_000
 
 
 class Archive:
@@ -25,6 +26,8 @@ class Archive:
         self._terminal = set()
 
     def append(self, kind: str, payload: dict) -> str:
+        if len(self.events) >= _MAX_JOURNAL_EVENTS:
+            raise ValueError("journal event limit")
         prior = self.events[-1]["hash"] if self.events else "GENESIS"
         event = {
             "sequence": len(self.events),
@@ -33,30 +36,35 @@ class Archive:
             "previous_hash": prior,
         }
         event["hash"] = canonical_hash(event)
+        encoded = canonical_bytes(event) + b"\n"
+        prior_bytes = self.journal.stat().st_size if self.journal.exists() else 0
+        if prior_bytes + len(encoded) > _MAX_JOURNAL_BYTES:
+            raise ValueError("journal size limit")
         with self.journal.open("ab") as f:
-            f.write(canonical_bytes(event) + b"\n")
+            f.write(encoded)
         self.events.append(event)
         return event["hash"]
 
     def write_manifest(self, configuration: dict) -> str:
-        """Persist the exact inputs before emitting the first scientific event.
-
-        Exclusive creation refuses accidental reuse. Atomic crash recovery remains
-        a separate P1-03 obligation; partial files are rejected by replay.
-        """
+        """Bind replay inputs before emitting the first event; P1-03 owns crash recovery."""
         if self.events or self.journal.exists():
             raise ValueError("manifest must precede the first event")
         manifest = {
             "schema_version": COHORT_VERSION,
             "configuration": deepcopy(configuration),
         }
+        encoded = canonical_bytes(manifest) + b"\n"
+        if len(encoded) > _MAX_MANIFEST_BYTES:
+            raise ValueError("manifest size limit")
         with (self.directory / "manifest.json").open("xb") as f:
-            f.write(canonical_bytes(manifest) + b"\n")
+            f.write(encoded)
         digest = canonical_hash(manifest)
         self.append("COHORT_MANIFEST", {"manifest_hash": digest})
         return digest
 
     def terminal_archive(self, organism_id: str, summary: dict) -> str | None:
+        if not isinstance(summary, dict) or "organism_id" in summary:
+            raise ValueError("organism_id is owned by the archive, not the terminal summary")
         if organism_id in self._terminal:
             return None
         self.append("STOP_TRIGGERED", {"organism_id": organism_id, **summary})
@@ -67,56 +75,69 @@ class Archive:
         return final_hash
 
     @staticmethod
+    def _read_verified_events(path: str | Path) -> list[dict]:
+        """Read bytes once; validate and return exactly the checked event objects.
+
+        The strict byte and event-count bounds apply before JSON object expansion.
+        Content digests detect corruption, not hostile re-signing.
+        """
+        journal = Path(path)
+        if journal.stat().st_size > _MAX_JOURNAL_BYTES:
+            raise ValueError("journal size limit")
+        raw = journal.read_bytes()
+        if not raw or len(raw) > _MAX_JOURNAL_BYTES or not raw.endswith(b"\n"):
+            raise ValueError("missing or partial journal")
+        lines = raw.split(b"\n")
+        if len(lines) - 1 > _MAX_JOURNAL_EVENTS:
+            raise ValueError("journal event limit")
+        previous = "GENESIS"
+        events = []
+        for sequence, line in enumerate(lines[:-1]):
+            event = json.loads(line)
+            if not isinstance(event, dict) or set(event) != {
+                "sequence",
+                "kind",
+                "payload",
+                "previous_hash",
+                "hash",
+            }:
+                raise ValueError("invalid journal event structure")
+            digest = event.pop("hash")
+            if (
+                type(event["sequence"]) is not int
+                or event["sequence"] != sequence
+                or event["previous_hash"] != previous
+                or type(event["kind"]) is not str
+                or not isinstance(event["payload"], dict)
+                or type(digest) is not str
+                or digest != canonical_hash(event)
+            ):
+                raise ValueError("invalid journal hash chain")
+            previous = digest
+            # The verified, parsed payload becomes the normalized trace; no
+            # second decode or duplicate deep copy of every untrusted payload.
+            events.append(event)
+        return events
+
+    @staticmethod
     def verify_chain(path: str | Path) -> bool:
-        prior = "GENESIS"
         try:
-            journal = Path(path)
-            if journal.stat().st_size > _MAX_JOURNAL_BYTES:
-                return False
-            raw = journal.read_bytes()
-            if not raw or not raw.endswith(b"\n"):
-                return False
-            for i, line in enumerate(raw.splitlines()):
-                event = json.loads(line)
-                if not isinstance(event, dict) or set(event) != {
-                    "sequence",
-                    "kind",
-                    "payload",
-                    "previous_hash",
-                    "hash",
-                }:
-                    return False
-                digest = event.pop("hash")
-                if (
-                    type(event["sequence"]) is not int
-                    or event["sequence"] != i
-                    or event["previous_hash"] != prior
-                    or type(event["kind"]) is not str
-                    or not isinstance(event["payload"], dict)
-                    or digest != canonical_hash(event)
-                ):
-                    return False
-                prior = digest
-        except (OSError, ValueError, TypeError, KeyError, UnicodeDecodeError):
+            Archive._read_verified_events(path)
+        except (OSError, ValueError, TypeError, KeyError, UnicodeDecodeError, RecursionError):
             return False
         return True
 
     @staticmethod
     def read_normalized_trace(directory: str | Path) -> tuple[dict, list[dict]]:
-        """Read a *completed* trace, excluding measurement-only CPU timing.
-
-        A hash chain detects accidental changes, not an attacker with write
-        access who can rehash the journal. Scientific replay separately reruns
-        the unchanged independent verifier.
-        """
+        """Read a completed trace; normalize CPU timing only, never proof work."""
         root = Path(directory)
         path = root / "manifest.json"
         try:
             if path.stat().st_size > _MAX_MANIFEST_BYTES:
                 raise ValueError("manifest size limit")
             raw = path.read_bytes()
-            if not raw.endswith(b"\n"):
-                raise ValueError("partial manifest")
+            if len(raw) > _MAX_MANIFEST_BYTES or not raw.endswith(b"\n"):
+                raise ValueError("partial or oversized manifest")
             manifest = json.loads(raw)
             if (
                 not isinstance(manifest, dict)
@@ -157,10 +178,16 @@ class Archive:
                 or type(config["verifier_version"]) is not str
             ):
                 raise ValueError("invalid cohort policy types")
-            journal = root / "events.jsonl"
-            if not Archive.verify_chain(journal):
-                raise ValueError("journal integrity failure")
-            events = [json.loads(line) for line in journal.read_text().splitlines()]
+            # The effective resource contract may not drift from the five-gene
+            # stop station or the directive recorded in this same manifest.
+            genes = config["genome"]["genome"]
+            max_allowed = genes["stop_station"]["max_candidate_evaluations"]
+            epoch_cap = genes["directive"]["proposals_per_epoch"]
+            if policy["max_evals"] > max_allowed:
+                raise ValueError("replay resource policy mismatch")
+            if policy["epoch_proposals"] != min(policy["max_evals"], epoch_cap):
+                raise ValueError("replay resource policy mismatch")
+            events = Archive._read_verified_events(root / "events.jsonl")
             if (
                 not events
                 or events[0]["kind"] != "COHORT_MANIFEST"
@@ -187,14 +214,13 @@ class Archive:
                     terminated.add(organism_id)
                 if kind == "ARCHIVED" and (i == 0 or events[i - 1]["kind"] != "STOP_TRIGGERED"):
                     raise ValueError("orphan archive event")
+                if kind == "GROWTH_EVIDENCE":
+                    resources = payload.get("resources")
+                    if not isinstance(resources, dict):
+                        raise ValueError("malformed growth resource counters")
+                    resources.pop("cpu_ms", None)
             if not terminated:
                 raise ValueError("no completed organism")
-            trace = []
-            for event in events:
-                payload = deepcopy(event["payload"])
-                if event["kind"] == "GROWTH_EVIDENCE":
-                    payload["resources"].pop("cpu_ms", None)
-                trace.append({"kind": event["kind"], "payload": payload})
-            return manifest, trace
-        except (OSError, KeyError, TypeError, UnicodeDecodeError) as exc:
+            return manifest, [{"kind": e["kind"], "payload": e["payload"]} for e in events]
+        except (OSError, KeyError, TypeError, UnicodeDecodeError, RecursionError) as exc:
             raise ValueError("missing or malformed replay evidence") from exc

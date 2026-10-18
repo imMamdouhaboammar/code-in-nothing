@@ -26,6 +26,7 @@ This is the starting point for developers, reviewers and researchers. **The exec
 | [Evolution protocol](architecture/EVOLUTION.md) | Individual growth, world evolution, reproduction, maturity, stop | Protocol proposal |
 | [Contracts](architecture/CONTRACTS.md) | Existing v0.1 functions and future APIs, status semantics, compatibility | Versioned interface contract |
 | [Security and operations](architecture/SECURITY.md) | Trust boundaries, governor, sandbox and evidence handling | Risk controls and phase prerequisites |
+| [CIN-Lab Not Broke Rules](architecture/NOT-BROKE-RULES.md) | Corrected ten architecture guardrails, proof-scope limits and acceptance checklist | Proposed policy, not a conformance certificate |
 | [Research map](research/LITERATURE.md) | Primary sources, what they support, what they do not | Evidence synthesis |
 | [Experimental protocol](research/EXPERIMENTS.md) | Hypotheses, baselines, budget accounting, holdout and metrics | Pre-registration proposal |
 | [Phases and gates](roadmap/PHASES.md) | Delivery sequence, stop/go criteria and explicit non-goals | Product and research roadmap |
