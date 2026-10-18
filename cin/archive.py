@@ -185,9 +185,7 @@ class Archive:
                     }:
                         raise ValueError("terminal summary mismatch")
                     terminated.add(organism_id)
-                if kind == "ARCHIVED" and (
-                    i == 0 or events[i - 1]["kind"] != "STOP_TRIGGERED"
-                ):
+                if kind == "ARCHIVED" and (i == 0 or events[i - 1]["kind"] != "STOP_TRIGGERED"):
                     raise ValueError("orphan archive event")
             if not terminated:
                 raise ValueError("no completed organism")
