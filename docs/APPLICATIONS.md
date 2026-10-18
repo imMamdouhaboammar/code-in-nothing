@@ -47,7 +47,7 @@ The engine discovered `max(x, y)` after evaluating 63 candidates against a forma
 # Generated from a verified CIN-IR artifact.
 # This export is not the bounded CIN runtime.
 def solve(x: int, y: int) -> int:
-    return (y if (x < y) else x)
+    return y if (x < y) else x
 ```
 
 **Scope boundary:** This is a two-input integer comparison solved under a finite domain. It is not general-purpose code generation and makes no claim about programs outside the declared grammar and world.

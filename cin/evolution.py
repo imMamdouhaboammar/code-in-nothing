@@ -59,7 +59,13 @@ def spawn_verified(
         "id": child_id,
         "parent_ids": [parent["id"]],
         "genome": genome,
-        "skills": deepcopy(parent["skills"]),
+        # Only transfer the program whose certificates and worlds were replayed.
+        # Other parent skills have not been independently verified for this birth.
+        "skills": {
+            world_hash: deepcopy(skill)
+            for world_hash, skill in parent["skills"].items()
+            if world_hash in qualified and canonical_hash(skill) == artifact["hash"]
+        },
         "inherited_from": artifact["hash"],
     }
 
