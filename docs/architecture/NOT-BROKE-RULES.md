@@ -87,7 +87,7 @@ No hard-coded number in the original proposals (AST depth 5, nodes 15, 100 "virt
 
 **Evidence / gate.** Negative tests for breaking `World0` while passing `World1`, stale artifacts/spec hashes, mismatched program hashes, unadmitted world references and unsupported inheritance claims. Record which contracts and case counts were replayed.
 
-**Current alignment: IMPLEMENTED for the current two-spec gate.** `cin/evolution.py::spawn_verified` and experiment orchestration perform independent admission/replay; multi-family transfer remains FUTURE.
+**Current alignment: IMPLEMENTED for the current two-spec gate (including selective inheritance).** `cin/evolution.py::spawn_verified` and experiment orchestration perform independent admission/replay. The child receives only the selected artifact in the independently replayed certified worlds; unrelated parent skills are not copied. `tests/test_evolution.py` covers this boundary. Multi-family transfer remains FUTURE.
 
 ## Rule 8 — No generated-program host side effects; precise sandbox claims
 
