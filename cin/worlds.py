@@ -79,14 +79,13 @@ def _inputs(world, max_cases: int):
         yield pair
 
 
-
 def _require_matching_signature(world: dict, base: dict) -> None:
     """Older finite worlds are strictly two-input contracts, even with IR v0.2."""
-    if (
-        world["input_types"] != base.get("input_types")
-        or world["return_type"] != base.get("return_type")
+    if world["input_types"] != base.get("input_types") or world["return_type"] != base.get(
+        "return_type"
     ):
         raise WorldViolation("genome and world function signatures differ")
+
 
 def verify_program(
     program: dict, world: dict, base: dict, limits: Limits = Limits(), max_cases: int = 4096

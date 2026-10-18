@@ -105,7 +105,7 @@ def run_ir(
     node: dict, x: int, y: int, limits: Limits = Limits(), ops_counter: list[int] | None = None
 ) -> int:
     """Legacy two-argument entry point, preserving positional caller compatibility."""
-    return run_ir_args(node, (x, y), limits, ops_counter)
+    return run_ir_args(node, (x, y), limits, ops_counter, expected_arity=2)
 
 
 def run_ir_args(
