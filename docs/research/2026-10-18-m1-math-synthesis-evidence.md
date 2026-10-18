@@ -19,17 +19,17 @@ python -m ruff format --check .
 
 CI runs the experiment on Ubuntu/Python 3.12, and full tests plus legacy
 MAX2 demonstrations on Python 3.11–3.13 across Ubuntu and macOS.
-Recorded CI: [GitHub Actions run 39118369791](https://github.com/imMamdouhaboammar/code-in-nothing/actions/runs/39118369791).
+Recorded CI: [GitHub Actions run 39118757098](https://github.com/imMamdouhaboammar/code-in-nothing/actions/runs/39118757098).
 
 ## Observed results
 
 Values below are the **CI-produced results** of the current repository
 experiment (not handwritten target programs or earlier local prototypes).
 
-| Formal world | Proposals seen | Budget | Signed domain points verified | Screen calls | Screen IR ops | Full verifier calls | Full verifier IR ops | CPU (s) |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `min2` | 59 | 250 | 81 | 66 | 280 | 1 | 405 | 0.009 |
-| `absdiff` | 22,698 | 30,000 | 81 | 24,547 | 199,347 | 1 | 567 | 1.747 |
+| Formal world | Proposals seen | Shape attempts | Observational prunes | Budget | Verified points | Screen calls | Screen IR ops | Formal calls | Formal IR ops | CPU (s) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `min2` | 59 | 832 | 722 | 250 | 81 | 66 | 280 | 1 | 405 | 0.009 |
+| `absdiff` | 22,698 | 229,135 | 197,970 | 30,000 | 81 | 24,547 | 199,347 | 1 | 567 | 1.724 |
 
 **Verdict:** `PASS / FINITE_EXHAUSTIVE` for each stated domain
 `x,y ∈ [-4,4]` (81 ordered pairs). The independently verified hashes
@@ -43,15 +43,16 @@ Only surviving programs enter complete formal verification. The 22,698
 candidate count includes screening failures and is **not** the number of
 full exhaustive-verifier calls.
 
-**Current accounting omissions:** internal shape attempts and fingerprint
-construction are covered by total process CPU but not reported separately;
-world-admission witness search was **not run** in this experiment; training
-screen and independent final verification are both charged separately in
-the reported interpreter operation counts. CPU seconds are hardware-specific.
+**Current accounting omissions:** generated fingerprint tuple operations and
+world-admission witness search have no separate operation ledger (admission
+was **not run** in this experiment). Internal shape attempts and observational
+prunes are now explicitly counted. Training screen and complete final
+verification operations are separately reported. CPU seconds are
+hardware-specific and include Python-level generation costs.
 
 ## Regression evidence
 
-At CI run 39118369791, the 6 test-matrix jobs and the Ruff lint/format job
+At CI run 39118757098, the 6 test-matrix jobs and the Ruff lint/format job
 completed successfully; the previously implemented MAX2 demo, frozen-world
 control, and no-inheritance control remain part of each matrix job.
 CodeQL runs independently. This proves compatibility with these checks,
@@ -69,8 +70,8 @@ The existing organism lifecycle has a 2,000-candidate limit in the frozen
 independent research harness; it is not claimed as within one organism's
 current lifetime.
 
-Before any efficiency claim: instrument internal search work, execute
-equal-budget typed-random, prior shallow grammar, CEGIS and hereditary
+Before any efficiency claim: extend internal work accounting to measured fingerprint
+construction, and execute\nequal-budget typed-random, prior shallow grammar, CEGIS and hereditary
 comparisons, include world admission and witness costs, freeze task splits,
 and preserve failed/UNKNOWN runs. Next separately reviewable engineering
 gate M2 adds versioned 3-input IR/world signatures for `median3` and
