@@ -134,4 +134,77 @@ The next engineering gate is `P1-01` (immutable cohort manifest + normalized rep
 
 ---
 
+## 2026-10-19 — Milestone P1 Slices + Guided Synthesis & Hardware H0 Baseline
+
+**Runtime:** `cin-lab/0.1` · `934cd06` · Python 3.11–3.13  
+**CI:** passing (116 tests, 0 failures) · `python -m cin validate` → `VALID`  
+**Language model calls:** 0
+
+### Verified Capabilities
+
+| Capability | How It Works | Verified By |
+| :--- | :--- | :--- |
+| **Finite-Epoch Scheduler & Governor Accounting** | Multi-epoch execution with single-use compute reservations debiting actual operations; global candidate budget preserved without silent resets; plateau termination. | `tests/test_scheduler.py`, `tests/test_governor.py` (ADR 0008) |
+| **Evidence-Gated Guided Synthesis (B0/B1/B2 Arms)** | Evaluates candidates against an immutable, frozen public training panel to guide search frontiers without leaking private verifier feedback or compromising formal admission. | `cin/training.py`, `cin/guided_experiment.py`, `tests/test_training.py`, `tests/test_guided_experiment.py` |
+| **Non-Invasive H0 CPU Profiler & Amdahl Ceiling** | Measures signature-search CPU wall-time across frozen manifests, calculates optimistic hardware acceleration ceilings, and enforces data-driven GO/NO-GO gates. | `experiments/hardware/profile_signature_search.py`, `tests/test_hardware_profile.py` (ADR 0009) |
+| **Extended Math Synthesis (M1 Suite)** | Verifies formal synthesis of integer arithmetic/comparisons including `min2` and `absdiff` under bounded exhaustive specifications without oracle guidance. | `experiments/run_m1.py`, `tests/test_math_search.py` |
+| **Multi-Argument Task-Blind Probing** | Expands typed candidate enumeration up to 8 arguments (`cin.genome/v0.2`) with bounded probe work while keeping legacy contracts frozen. | `tests/test_multi_input_ir.py` |
+
+### Applications Unlocked at This Milestone
+
+Building on previous milestones, the new runtime guarantees unlock additional production and research patterns:
+
+---
+
+#### 1. Dual-Gated Controller Synthesis (Public Simulation + Private Formal Proof)
+
+**The problem it solves:** Training control logic directly against a formal verifier causes overfitting and leaks the specification. Conversely, training solely against simulation traces yields unverified controllers prone to catastrophic out-of-distribution failures.
+
+**What CIN provides:**
+- Developers supply a public set of training traces (panel) to guide candidate exploration (Arm B2).
+- The verifier remains physically isolated and executes an independent, exhaustive finite-domain proof before any candidate is admitted or promoted.
+- Candidates that score 100% on the public training panel are never admitted unless they also pass the private formal world verifier.
+
+**Supported scope (today):** Discrete control logic, threshold selectors, and saturating math expressible in CIN-IR over 1–8 integer parameters.
+
+---
+
+#### 2. Resource-Fenced Multi-Tenant Algorithmic Synthesis
+
+**The problem it solves:** Automated code generation engines without strict accounting can exhaust server CPU, deadlock under unbounded search, or report premature success when budgets run out.
+
+**What CIN provides:**
+- `cin.governor.Governor` enforces single-use reservations that debit only actual executed operations.
+- Global budgets remain immutable across search epochs, preventing budget reset attacks or unbounded search loops.
+- Plateau detection halts wasted computation after configured grace intervals, returning verified status or graceful `UNKNOWN` without fabricating success.
+
+---
+
+#### 3. Hardware Offload Feasibility & RTL Pre-Flight Auditing
+
+**The problem it solves:** Teams often commit to expensive FPGA or ASIC development for algorithm acceleration before measuring whether memory bandwidth, dispatch overhead, and sequential code will throttle practical speedup.
+
+**What CIN provides:**
+- The H0 profiling harness empirically benchmarks signature evaluation wall-time against interpreter overhead.
+- Calculates Amdahl's Law upper-bound speedup curves on real CPU workloads before a single line of HDL is written.
+- Rejects hardware projects early if the measured signature stage does not dominate execution time.
+
+---
+
+### Honest Boundaries
+
+| Claim | Status |
+| :--- | :--- |
+| Formally verified programs over declared bounded integer domains | **Implemented** |
+| Finite-epoch scheduling with single-use reservations (P1-02) | **Implemented** |
+| Opt-in public training guidance with independent verification | **Implemented** |
+| H0 CPU profiling and Amdahl feasibility analysis | **Implemented** |
+| Measured FPGA / hardware speedup | **`NOT_MEASURED`** / Exploratory |
+| Multi-task semantic world co-evolution (P2) | **Designed, not implemented** |
+| Cross-task hereditary abstraction reuse (P3) | **Designed, not implemented** |
+| Scientific self-improvement | **`NOT_ESTABLISHED`** |
+| General-purpose code generation or software engineering | **Out of scope; not a goal** |
+
+---
+
 *This document is append-only. The next entry will be added when a new milestone passes its acceptance gates.*
