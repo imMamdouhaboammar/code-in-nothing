@@ -95,6 +95,7 @@ from typing import Literal, Protocol, Sequence, TypeAlias
 
 Vector: TypeAlias = tuple[int, ...] | tuple[bool, ...]
 
+
 @dataclass(frozen=True)
 class SignatureOp:
     request_id: int
