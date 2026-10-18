@@ -23,9 +23,8 @@ MAX_WORLD_CASES = 4096
 
 
 def _domain_size(world: dict) -> int:
-    return (
-        (world["input_domain"]["x"]["max"] - world["input_domain"]["x"]["min"] + 1)
-        * (world["input_domain"]["y"]["max"] - world["input_domain"]["y"]["min"] + 1)
+    return (world["input_domain"]["x"]["max"] - world["input_domain"]["x"]["min"] + 1) * (
+        world["input_domain"]["y"]["max"] - world["input_domain"]["y"]["min"] + 1
     )
 
 
@@ -96,8 +95,11 @@ def run_trial(
     generator_reservation = _search_cap(base, bootstrap)
     generator_grant = governor.reserve(ACTOR, generator_reservation)
     stream = candidate_stream(
-        base["starting_expression"], base, seed=seed,
-        max_proposals=bootstrap, stats=stats,
+        base["starting_expression"],
+        base,
+        seed=seed,
+        max_proposals=bootstrap,
+        stats=stats,
     )
     frontier = GuidedFrontier(base, seed=seed, max_pool=32) if arm == "B2" else None
     queue: deque[dict] = deque()
