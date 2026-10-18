@@ -28,7 +28,14 @@ def _validate(value: dict, schema_name: str) -> dict:
 
 
 def validate_genome(genome: dict) -> dict:
-    _validate(genome, "seed-genome.v0.1.schema.json")
+    version = genome.get("api_version") if isinstance(genome, dict) else None
+    if version == "cin.genome/v0.1":
+        schema_name = "seed-genome.v0.1.schema.json"
+    elif version == "cin.genome/v0.2":
+        schema_name = "seed-genome.v0.2.schema.json"
+    else:
+        raise ContractError("unsupported genome version")
+    _validate(genome, schema_name)
     weights = list(genome["genome"]["driver"]["mutation_operators"].values())
     if not math.isclose(math.fsum(weights), 1, abs_tol=1e-8):
         raise ContractError("mutation weights must sum to one")

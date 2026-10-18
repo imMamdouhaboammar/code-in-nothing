@@ -2,13 +2,13 @@
 
 **Status:** Proposed expansion of [P0-P6 roadmap](PHASES.md), not implementation progress. **Authority:** [math spec v0.5](../specs/2026-10-18-cin-mathematical-evolution-v0.5.md). Stage names identify evaluation gates, not calendar promises.
 
-**Active engineering checkpoint (2026-10-18):** M1 is implemented on the unmerged
-[feature PR #1](https://github.com/imMamdouhaboammar/code-in-nothing/pull/1),
-with [finite-domain measurements](../research/2026-10-18-m1-math-synthesis-evidence.md)
+**Active engineering checkpoint (2026-10-18):** M1 was merged to `main` as
+[PR #1](https://github.com/imMamdouhaboammar/code-in-nothing/pull/1),
+at commit `ca65b95d4ea0e22c55ad3cb0ea430588cad7e75f`, with [finite-domain measurements](../research/2026-10-18-m1-math-synthesis-evidence.md)
 and [ADR 0005](../adr/0005-cost-layered-observational-search.md).
 This does not yet mark the M1 scientific comparison gate complete: matched
 random/legacy/CEGIS baselines and admission-cost accounting remain required.
-M2 onward are design/research targets, not implemented features.
+An opt-in N-input IR core is being implemented separately in [PR #2](https://github.com/imMamdouhaboammar/code-in-nothing/pull/2). M2's world/synthesis and capability gates, and M3 onward, are not demonstrated.
 
 | Gate | Dependency | Shippable verified artifact | Hard exit criterion |
 | --- | --- | --- | --- |

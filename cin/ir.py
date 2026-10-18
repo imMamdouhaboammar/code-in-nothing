@@ -29,8 +29,28 @@ def canonical_hash(obj: object) -> str:
     return hashlib.sha256(canonical_bytes(obj)).hexdigest()
 
 
+def _input_arity(base: dict) -> int:
+    """Validate the versioned integer function signature without mutating the genome."""
+    version = base.get("cin_ir_version", "0.1")
+    parameters = base.get("input_types", ["Int", "Int"])
+    if base.get("return_type", "Int") != "Int":
+        raise IRViolation("unsupported return type")
+    if version == "0.1":
+        if parameters != ["Int", "Int"]:
+            raise IRViolation("legacy IR requires exactly two Int arguments")
+    elif version == "0.2":
+        if not isinstance(parameters, list) or not 1 <= len(parameters) <= 8:
+            raise IRViolation("IR v0.2 requires 1..8 parameters")
+        if any(kind != "Int" for kind in parameters):
+            raise IRViolation("unsupported parameter type")
+    else:
+        raise IRViolation("unsupported IR version")
+    return len(parameters)
+
+
 def check_tree(node: dict, base: dict) -> str:
     """Returns output type; validates every branch and shape statically."""
+    arity = _input_arity(base)
     limit_depth, limit_nodes = base["max_ast_depth"], base["max_ast_nodes"]
     seen = [0]
 
@@ -44,7 +64,7 @@ def check_tree(node: dict, base: dict) -> str:
         if op not in base["allowed_primitives"]:
             raise IRViolation(f"op not allowed: {op}")
         if op == "Arg":
-            if set(v) != {"op", "index"} or type(v["index"]) is not int or v["index"] not in (0, 1):
+            if set(v) != {"op", "index"} or type(v["index"]) is not int or not 0 <= v["index"] < arity:
                 raise IRViolation("invalid argument")
             return "Int"
         if op == "ConstInt":
@@ -80,8 +100,20 @@ def check_tree(node: dict, base: dict) -> str:
 def run_ir(
     node: dict, x: int, y: int, limits: Limits = Limits(), ops_counter: list[int] | None = None
 ) -> int:
-    """Evaluate only whitelisted IR; callers should statically check once first."""
-    if type(x) is not int or type(y) is not int:
+    """Legacy two-argument entry point, preserving positional caller compatibility."""
+    return run_ir_args(node, (x, y), limits, ops_counter)
+
+
+def run_ir_args(
+    node: dict,
+    arguments: tuple[int, ...],
+    limits: Limits = Limits(),
+    ops_counter: list[int] | None = None,
+) -> int:
+    """Execute a statically checked typed IR with an explicit argument tuple."""
+    if not isinstance(arguments, tuple) or not 1 <= len(arguments) <= 8:
+        raise IRViolation("argument tuple must contain 1..8 inputs")
+    if any(type(value) is not int for value in arguments):
         raise IRViolation("integer inputs required")
     operations = [0]
 
@@ -89,6 +121,10 @@ def run_ir(
         if type(v) is int and v.bit_length() > limits.max_bits:
             raise IRViolation("integer bit limit")
         return v
+
+    # Input bit limits apply even when a lazy conditional does not read an argument.
+    for value in arguments:
+        bound(value)
 
     def execute(v, depth):
         operations[0] += 1
@@ -100,7 +136,10 @@ def run_ir(
             raise IRViolation("interpreter budget exceeded")
         op = v["op"]
         if op == "Arg":
-            return bound((x, y)[v["index"]])
+            index = v["index"]
+            if type(index) is not int or not 0 <= index < len(arguments):
+                raise IRViolation("invalid argument index")
+            return bound(arguments[index])
         if op == "ConstInt":
             return bound(v["value"])
         if op == "If":
@@ -132,11 +171,13 @@ def render_python(node: dict, base: dict) -> str:
     experiment claims apply to the CIN-IR interpreter, not unrestricted hosts.
     """
     check_tree(node, base)
+    arity = _input_arity(base)
+    names = ("x", "y", "z", *(f"a{i}" for i in range(3, arity)))[:arity]
 
     def emit(n):
         op = n["op"]
         if op == "Arg":
-            return ("x", "y")[n["index"]]
+            return names[n["index"]]
         if op == "ConstInt":
             return str(n["value"])
         args = n["args"]
@@ -148,6 +189,6 @@ def render_python(node: dict, base: dict) -> str:
     return (
         "# Generated from a verified CIN-IR artifact.\n"
         "# This export is not the bounded CIN runtime.\n"
-        "def solve(x: int, y: int) -> int:\n"
+        "def solve(" + ", ".join(f"{name}: int" for name in names) + ") -> int:\n"
         f"    return {emit(node)}\n"
     )
