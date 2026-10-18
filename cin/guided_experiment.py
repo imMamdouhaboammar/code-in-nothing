@@ -10,7 +10,6 @@ from __future__ import annotations
 import time
 from collections import deque
 from dataclasses import asdict
-from itertools import product
 
 from .governor import Cost, Governor
 from .ir import Limits, canonical_hash
@@ -105,6 +104,7 @@ def run_trial(
     seen: set[str] = set()
     expanded: set[str] = set()
     parent_trace: list[str] = []
+    candidate_hashes: list[str] = []
     fitness_trace: list[float] = []
     verdict_counts = {"PASS": 0, "FAIL": 0, "INVALID": 0, "UNKNOWN": 0}
     verified_hash = None
@@ -156,6 +156,7 @@ def run_trial(
             if digest in seen:
                 continue
             seen.add(digest)
+            candidate_hashes.append(digest)
             _charged(governor, Cost(candidate_evaluations=1), Cost(candidate_evaluations=1))
             evaluated += 1
 
@@ -229,6 +230,7 @@ def run_trial(
         "proposals_evaluated": evaluated,
         "verdict_counts": verdict_counts,
         "selected_parent_hashes": parent_trace,
+        "candidate_hashes": candidate_hashes,
         "fitness_trajectory": fitness_trace,
         "cost": costs,
         "accounted_events": accounted_events,
