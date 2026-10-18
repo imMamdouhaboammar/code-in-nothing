@@ -38,9 +38,7 @@ def run_task(filename: str, budget: int, base: dict) -> dict:
         for x, y in SCREEN:
             screened += 1
             output = run_ir(proposal.expression, x, y, ops_counter=screen_operations)
-            if not check_formula(
-                world["postcondition"], {"x": x, "y": y, "result": output}
-            ):
+            if not check_formula(world["postcondition"], {"x": x, "y": y, "result": output}):
                 break
         else:
             verdict = verify_program(proposal.expression, world, base, max_cases=81)
