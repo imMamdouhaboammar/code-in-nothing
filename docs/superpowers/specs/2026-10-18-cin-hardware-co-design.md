@@ -102,12 +102,21 @@ class SignatureOp:
     operands: tuple[Vector, ...]
     length: int
 
+
 @dataclass(frozen=True)
 class SignatureReply:
     request_id: int
-    status: Literal["OK", "UNSUPPORTED", "WIDTH_OVERFLOW",
-                    "INVALID_REQUEST", "DEVICE_FAILURE", "TIMEOUT", "MISMATCH"]
+    status: Literal[
+        "OK",
+        "UNSUPPORTED",
+        "WIDTH_OVERFLOW",
+        "INVALID_REQUEST",
+        "DEVICE_FAILURE",
+        "TIMEOUT",
+        "MISMATCH",
+    ]
     values: Vector | None
+
 
 class SignatureBackend(Protocol):
     def evaluate_batch(self, requests: Sequence[SignatureOp]) -> list[SignatureReply]: ...
