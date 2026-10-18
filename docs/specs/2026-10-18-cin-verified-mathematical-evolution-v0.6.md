@@ -3,7 +3,7 @@
 **Status:** Integrated engineering and scientific design, not a released runtime version.
 **Date:** 2026-10-18
 **Baseline:** `main` commit `ca65b95d4ea0e22c55ad3cb0ea430588cad7e75f`, merging M1 in [PR #1](https://github.com/imMamdouhaboammar/code-in-nothing/pull/1).
-**Current implementation proposal:** [M2 foundation PR #2](https://github.com/imMamdouhaboammar/code-in-nothing/pull/2), independently reviewable and **not assumed merged**.
+**Current merged implementation:** [M2 foundation PR #2](https://github.com/imMamdouhaboammar/code-in-nothing/pull/2), squash merge `981bffb96806da76c55df3857b860cbbb8b2957d`. Its N-input IR and search foundation are tested; **the complete M2 mathematical discovery gate remains open**.
 **Prior authorities:** [integrated v0.4](2026-10-18-cin-integrated-system-spec-v0.4.md), [mathematical v0.5](2026-10-18-cin-mathematical-evolution-v0.5.md), [formal benchmark protocol](../research/MATH-BENCHMARK-PROTOCOL.md), [current mathematical roadmap](../roadmap/MATH-PHASES.md), [M1 CI evidence](../research/2026-10-18-m1-math-synthesis-evidence.md), and [ADR 0005](../adr/0005-cost-layered-observational-search.md).
 
 The v0.4 and v0.5 specifications remain applicable to their declared scopes. This document resolves **execution priorities and acceptance gates** for the next research program; it does not silently supersede previous versioned contracts. "Implemented", "tested", "designed", "hypothesis", "negative result", and "unproven" have separate meanings.
@@ -34,7 +34,7 @@ If a control is faster or a required proof is UNKNOWN, report the negative or in
 | `min2`, `absdiff` discovery | EXPERIMENTALLY OBSERVED | M1 development pilot, 59 and 22,698 proposals respectively |
 | Finite signed-domain pass | INDEPENDENT FINITE-DOMAIN CHECK | 81/81 input pairs per relation; not universal proof |
 | Full search cost and matched baselines | NOT DEMONSTRATED | Signature/prune and witness cost missing; M1 pilot only |
-| Opt-in 1..8 Int signature / task-blind N-input search | IN UNMERGED PR #2 | Green CI at commit `9dd32575`; not a baseline-main capability |
+| Opt-in 1..8 Int signature / task-blind N-input search | MERGED AND TESTED (PR #2) | Merge `981bffb`; CI `39127527833`, CodeQL `39127527692`; no verified 3-input-world discovery |
 | Formal three-input world contract and verified discovery | NOT IMPLEMENTED | Independent world `v0.3` and verifier required |
 | Semantic novelty / uniquely functional world admission | NOT DEMONSTRATED | Old admission finds bounded witness; it does not prove output uniqueness |
 | Cross-task verified abstraction library | NOT DEMONSTRATED | Replay of one solution over widened domains is not transfer |
@@ -240,7 +240,7 @@ Every dimension records `status`, `evidence`, `scope`, `limitations`, `regressio
 
 | Axis | Current evidence boundary | Next falsifiable gate |
 | --- | --- | --- |
-| Expressiveness | Two-input M1 IR merged; N-input proposed in PR #2 | Three-input formal-world verification |
+| Expressiveness | Two-input M1 IR and additive N-input typed-IR foundation merged in PR #2 | Three-input formal-world verification |
 | Discovery | min2/absdiff M1 finite pilot | median3 or clamp independently discovered |
 | Correctness | M1 81-case finite verification | Signed/duplicate three-input exhaustive scope |
 | Generalization | Signed finite-domain M1 tests only | Sealed inputs and genuinely distinct relation |
@@ -257,7 +257,7 @@ When a new PR lands, update the ledger using actual commit IDs, machine-checkabl
 
 **G0: M1 measurement closure** (independent research PR): add cost ledger `v0.1`, count fingerprints/witness costs, fixed-probe collision regression tests, optional pruning ablation, and two comparable search baseline arms before superiority claims. Finish minimal defensible pilot; document unresolved statistical limits.
 
-**G1: M2 IR + signature/search foundation** (PR #2, independent of G0's statistical confirmation): add opt-in N-input contract, typed checks, interpreter/export, deterministic bounded search and legacy regressions. Pass full repository tests and both old M1 synthesis runs. **The PR must not claim M2 discovery.**
+**G1: M2 IR + signature/search foundation (MERGED in PR #2)**: opt-in N-input contract, typed checks, interpreter/export, deterministic bounded search and legacy regressions were added and passed the CI matrix. This bounded engineering foundation is independent of G0 statistical confirmation. **It is not M2 mathematical discovery and does not satisfy the later world/proof gates.**
 
 **G2: P1 durable multi-epoch lifecycle (required before new world work)**: ship the approved `P1-01` immutable cohort manifest/replay, `P1-02` governor and finite scheduler, and `P1-03` atomic archive/checkpoint recovery in narrow PRs. Prove >=3 legitimate generations with fixed parent DAG, bounded budgets, deterministic restart, exactly-once child creation and crash-injection tests. The existing P1 gate is mandatory before G3-G7 runtime claims. If P1 remains unstable, stop new semantic-world or macro runtime features.
 

@@ -1,7 +1,7 @@
 # CIN documentation index
 
 **Current date:** 2026-10-18  
-**Runtime:** CIN-Lab v0.1 on merged M1 (commit `ca65b95`); see source and CI for current test counts.  
+**Runtime:** CIN-Lab package v0.1 includes M1 (`ca65b95`) and the additive, tested M2 N-input IR/search foundation (merged PR #2 at `981bffb`). This is not full M2 discovery or a runtime v0.6 release.  
 **Integrated design:** v0.4 baseline and v0.5 math design. **v0.6** defines the evidence-gated research/engineering continuation; it is not a runtime version.
 
 This is the starting point for developers, reviewers and researchers. **The executable source and existing tests are the authority on current behavior.** The v0.4 design governs proposed work only after an implementation phase explicitly adopts its contracts.
