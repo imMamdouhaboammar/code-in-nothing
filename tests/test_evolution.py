@@ -109,7 +109,6 @@ def test_forged_heritability_certificates_are_rechecked(tmp_path):
         assert False, "a fabricated pass must not become inherited growth"
 
 
-
 def test_offspring_excludes_parent_skills_without_independent_replay():
     from cin.worlds import expand_domain
 
@@ -150,7 +149,9 @@ def test_offspring_excludes_parent_skills_without_independent_replay():
     )
     assert child["skills"] == approved_skills
     assert "unreplayed-parent-only-capability" in parent["skills"]
-    assert canonical_hash(child["genome"]["genome"]["base"]["starting_expression"]) == inherited_hash
+    assert (
+        canonical_hash(child["genome"]["genome"]["base"]["starting_expression"]) == inherited_hash
+    )
 
 
 def test_archive_detects_tampering(tmp_path):
