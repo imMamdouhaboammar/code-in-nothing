@@ -22,6 +22,8 @@ flowchart LR
 
 The gates are sequential where there is a real dependency. Parallel work on documentation, tasks and baselines is allowed, but do not use a label such as `P3` to imply earlier gates have passed.
 
+**Narrow compatibility exception (v0.6 G1):** An independently reviewable, opt-in N-input IR/signature and task-blind search foundation may be implemented before P1 completion **only** when the existing two-input world verifier and evolution lifecycle retain their prior semantics. It may not introduce a new admitted world, new verified task capability, hereditary macro, population behavior, or an M2 completion claim. It is preparatory runtime compatibility work, not a replacement for P1-01. New semantic-world or hereditary experiments remain blocked until P1 is verified. This exception aligns with the [v0.6 integrated research specification](../specs/2026-10-18-cin-verified-mathematical-evolution-v0.6.md).
+
 ## P0: Preserve the existing working pilot
 
 **Current status: implemented and tested at documentation baseline.** The five-gene schema, typed IR, finite-domain world checking, one acquisition of MAX2, one derived world domain extension, replay-gated child, hash-chain log and CLI exist. See [results](../../experiments/RESULTS.md).
@@ -102,11 +104,11 @@ Possible directions: optional SMT/SyGuS proof over supported theories, guarded n
 
 ## Stop or simplify triggers
 
-- P1 is not stable: stop new research features until resume/resource accounting is correct.
+- P1 is not stable: stop new semantic-world, hereditary-transfer, population/adaptation, and associated research claims until resume/resource accounting is correct. The versioned, opt-in compatibility-only IR/search foundation described above can be reviewed independently, but cannot be used to bypass P1 or count newly verified mathematical tasks.
 - P2 cannot produce nontrivially distinct solvable tasks: keep fixed worlds and publish limitation rather than claim co-evolution.
 - P3 macro benefit disappears after full discovery costs: retire macro mechanism or narrow the claim.
 - P4 fails on heldout tasks: retain simpler fixed policy.
 - More abstractions/dependencies/services than accepted new capabilities: remove architecture layers before adding more.
 - No measured case for hosted worker / Rust / neural model: keep the Python monolith.
 
-The next engineering action is `P1-01`, not expanding grammar or building UI. See [P1 plan](../plans/2026-10-18-cin-next-phases.md).
+The next **dependency-blocking** engineering gate remains `P1-01`; the bounded G1 compatibility exception above does not replace or satisfy it. Broader grammar expansion, new world semantics, and UI do not take priority over P1. See [P1 plan](../plans/2026-10-18-cin-next-phases.md).
