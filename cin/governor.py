@@ -17,6 +17,10 @@ class Cost:
     interpreter_operations: int = 0
     search_shapes: int = 0
     probe_evaluations: int = 0
+    training_cases: int = 0
+    training_interpreter_operations: int = 0
+    predicate_evaluations: int = 0
+    selection_operations: int = 0
 
     def __post_init__(self) -> None:
         if any(
