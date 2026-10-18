@@ -48,6 +48,7 @@ class SearchStats:
     """Mutable measurements of search work, not a fitness or proof signal."""
 
     attempted_shapes: int = 0
+    probe_evaluations: int = 0
     observational_prunes: int = 0
     integer_representatives: int = 0
     boolean_representatives: int = 0
@@ -134,6 +135,8 @@ def candidate_stream(
         observations = tuple(
             run_ir_args(parent, point, limits, expected_arity=arity) for point in probes
         )
+        if stats is not None:
+            stats.probe_evaluations += len(observations)
     except IRViolation:
         observations = None
     if observations is not None and size <= max_nodes:
@@ -148,6 +151,8 @@ def candidate_stream(
         observations = tuple(
             point[leaf["index"]] if leaf["op"] == "Arg" else leaf["value"] for point in probes
         )
+        if stats is not None:
+            stats.probe_evaluations += len(observations)
         if add("Int", 1, leaf, observations, 1):
             produced += 1
             yield Proposal(leaf, "replace_subtree", parent_hash, seed)
@@ -171,6 +176,8 @@ def candidate_stream(
                             stats.attempted_shapes = shapes
                         if shapes > max_shapes:
                             return
+                        if stats is not None:
+                            stats.probe_evaluations += len(probes)
                         if op == "Add":
                             values = tuple(a + b for a, b in zip(left.values, right.values))
                         elif op == "Sub":
@@ -207,6 +214,8 @@ def candidate_stream(
                                 stats.attempted_shapes = shapes
                             if shapes > max_shapes:
                                 return
+                            if stats is not None:
+                                stats.probe_evaluations += len(probes)
                             values = tuple(
                                 a if p else b for p, a, b in zip(pred.values, yes.values, no.values)
                             )
