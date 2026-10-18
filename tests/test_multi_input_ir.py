@@ -87,6 +87,4 @@ def test_unsupported_versions_and_non_integer_runtime_inputs_fail_closed():
 def test_existing_call_signature_and_code_export_remain_unchanged():
     base = LEGACY["genome"]["base"]
     assert run_ir({"op": "Arg", "index": 0}, 3, 4) == 3
-    assert "def solve(x: int, y: int) -> int:" in render_python(
-        {"op": "Arg", "index": 0}, base
-    )
+    assert "def solve(x: int, y: int) -> int:" in render_python({"op": "Arg", "index": 0}, base)

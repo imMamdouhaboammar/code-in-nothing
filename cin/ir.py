@@ -64,7 +64,11 @@ def check_tree(node: dict, base: dict) -> str:
         if op not in base["allowed_primitives"]:
             raise IRViolation(f"op not allowed: {op}")
         if op == "Arg":
-            if set(v) != {"op", "index"} or type(v["index"]) is not int or not 0 <= v["index"] < arity:
+            if (
+                set(v) != {"op", "index"}
+                or type(v["index"]) is not int
+                or not 0 <= v["index"] < arity
+            ):
                 raise IRViolation("invalid argument")
             return "Int"
         if op == "ConstInt":
