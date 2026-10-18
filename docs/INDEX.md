@@ -1,13 +1,14 @@
 # CIN documentation index
 
 **Current date:** 2026-10-18  
-**Runtime:** CIN-Lab v0.1 (working pilot; 35 baseline tests at documentation-planning start).  
-**Integrated design:** v0.4 baseline; **v0.5 mathematical evolution** adds proposed research architecture and a GitHub agent mission, not new runtime behavior.
+**Runtime:** CIN-Lab v0.1 on merged M1 (commit `ca65b95`); see source and CI for current test counts.  
+**Integrated design:** v0.4 baseline and v0.5 math design. **v0.6** defines the evidence-gated research/engineering continuation; it is not a runtime version.
 
 This is the starting point for developers, reviewers and researchers. **The executable source and existing tests are the authority on current behavior.** The v0.4 design governs proposed work only after an implementation phase explicitly adopts its contracts.
 
 | Read | Purpose | Authority |
 | --- | --- | --- |
+| [Verified mathematical evolution v0.6](specs/2026-10-18-cin-verified-mathematical-evolution-v0.6.md) | Integrated architecture, measured-cost contract, maturity ledger, falsifiable M1–M6 phase gates | Proposed v0.6 research program, not runtime release |
 | [Integrated specification](specs/2026-10-18-cin-integrated-system-spec-v0.4.md) | Goals, invariants, interfaces, transition model, proposed acceptance | Normative future design |
 | [Mathematical evolution v0.5](specs/2026-10-18-cin-mathematical-evolution-v0.5.md) | Integrated deeper mathematical synthesis/verification design | Proposed, not implemented |
 | [Math synthesis research](research/MATH-SYNTHESIS-RESEARCH.md) | Primary evidence, version traps and research hypotheses | Research interpretation |
