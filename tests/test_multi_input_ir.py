@@ -110,3 +110,8 @@ def test_eight_argument_search_has_bounded_probe_work():
     ]
     assert {"op": "Arg", "index": 7} in expressions
     assert len(expressions) == 12
+
+
+def test_legacy_lazy_projection_does_not_evaluate_unused_oversized_argument():
+    projection = {"op": "Arg", "index": 0}
+    assert run_ir(projection, 7, 2**128, Limits(max_bits=16)) == 7
