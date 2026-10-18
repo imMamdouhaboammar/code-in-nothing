@@ -19,6 +19,8 @@ This is the starting point for developers, reviewers and researchers. **The exec
 | [Deep math coding-agent prompt](prompts/DEEP-MATH-CODING-AGENT.md) | Full reusable GitHub continuation prompt | Agent instructions; no execution implied |
 | [ADR 0004](adr/0004-formal-math-complexity-and-proof-separation.md) | Formal math / verifier separation trade-off | Proposed architectural decision |
 | [Phase P1 research & architecture](research/2026-10-18-cin-p1-research-and-architecture.md) | Discovery, IR search relevance, and 3-vector architecture evaluation | Research & architectural evaluation |
+| [P1 evidence decisions](research/2026-10-18-cin-p1-evidence-decisions.md) | Live baseline, primary scientific sources, total-cost controls and next gates | Scoped research and implementation evidence |
+| [ADR 0007](adr/0007-manifest-bound-completed-run-replay.md) | Deterministic manifest and completed-run replay boundary | Architectural decision; P1-01 only |
 | [System architecture](architecture/SYSTEM.md) | Components, ownership, data flow, state and deployment | Architecture proposal plus runtime map |
 | [Evolution protocol](architecture/EVOLUTION.md) | Individual growth, world evolution, reproduction, maturity, stop | Protocol proposal |
 | [Contracts](architecture/CONTRACTS.md) | Existing v0.1 functions and future APIs, status semantics, compatibility | Versioned interface contract |
@@ -27,7 +29,6 @@ This is the starting point for developers, reviewers and researchers. **The exec
 | [Experimental protocol](research/EXPERIMENTS.md) | Hypotheses, baselines, budget accounting, holdout and metrics | Pre-registration proposal |
 | [Phases and gates](roadmap/PHASES.md) | Delivery sequence, stop/go criteria and explicit non-goals | Product and research roadmap |
 | [Next implementation plan](plans/2026-10-18-cin-next-phases.md) | Reviewable engineering steps and focused tests | Plan; work not executed |
-| [Phase P1 research & architecture](research/2026-10-18-cin-p1-research-and-architecture.md) | Discovery, IR search relevance, and 3-vector architecture evaluation | Research & architectural evaluation |
 | [Review ledger](reviews/2026-10-18-design-review.md) | Evidence, correctness gaps, contradictions and decisions | Repository inspection |
 | [Domain vocabulary](../CONTEXT.md) | Unambiguous naming without implementation details | Canonical terminology |
 | [ADRs](adr/0001-isolated-verification.md) | Trade-offs considered and frozen architectural decisions | Decision history |
