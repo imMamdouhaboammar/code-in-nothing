@@ -82,6 +82,10 @@ class Experiment:
         self.archive = archive
         if type(seed) is not int or seed < 0:
             raise ValueError("rng seed must be a nonnegative integer")
+        if max_evals is not None and (type(max_evals) is not int or max_evals < 1):
+            raise ValueError("evaluation budget must be a positive integer")
+        if type(world_evolution) is not bool or type(inheritance) is not bool:
+            raise ValueError("evolution flags must be booleans")
         self.seed = seed
         self.world_evolution = world_evolution
         self.inheritance = inheritance
@@ -396,6 +400,11 @@ def replay_experiment(directory: str | Path) -> dict:
             world_evolution=policy["world_evolution"],
             inheritance=policy["inheritance"],
         )
+        if (
+            experiment.max_evals != policy["max_evals"]
+            or experiment.epoch_proposals != policy["epoch_proposals"]
+        ):
+            raise ValueError("replay policy differs from effective run budget")
         result = experiment.run()
         _, actual_trace = Archive.read_normalized_trace(temporary)
     if actual_trace != expected_trace:
