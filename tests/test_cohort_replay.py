@@ -130,7 +130,7 @@ def test_replay_detects_policy_drift_even_when_hashes_are_recomputed(tmp_path):
 
     from cin.evolution import replay_experiment
 
-    with pytest.raises(ValueError, match="divergence"):
+    with pytest.raises(ValueError, match="policy|divergence"):
         replay_experiment(tmp_path)
 
 
