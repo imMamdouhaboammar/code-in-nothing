@@ -119,6 +119,10 @@ class SignatureReply:
     values: Vector | None
 
 
+class BackendUnavailable(RuntimeError):
+    """Requested optional backend cannot initialize for this run."""
+
+
 class SignatureBackend(Protocol):
     def evaluate_batch(self, requests: Sequence[SignatureOp]) -> list[SignatureReply]: ...
 ~~~
@@ -129,8 +133,8 @@ class SignatureBackend(Protocol):
 - CPU reference uses Python's mathematical integers. Physical RTL may use **declared signed W-bit two's-complement** (initial design knob W=64). Inputs outside `[-2^(W-1),2^(W-1)-1]` or arithmetic outputs beyond this range trigger `WIDTH_OVERFLOW` on the complete request, followed by exact CPU recomputation. Comparison respects signedness; Boolean output stays Boolean.
 - A batch is a deterministic mapping, not a capability evaluator. Stable request IDs/order; immutable input/output; no callback may change pruning, proposal budgets, or give candidate-level verdicts. Responses out of order or duplicated are invalid even if vector values look right.
 - `If` signature combination is elementwise `SELECT` on precomputed subterm signatures, **not lazy interpreter evaluation**. Candidate interpreter semantics stay separate.
-- When backend is unavailable (`UNSUPPORTED`, width, device error or timeout) CPU fallback occurs for the *whole affected request* and records failure and wasted work. In shadow mode CPU results always win and any divergence fails the experiment. In active mode known `MISMATCH` **aborts run and quarantines backend**; it must not be papered over with silent fallback.
-- Backend modes: `disabled`/`cpu`/`shadow`/`rtl-sim`/`fpga`. Device selection is a run-level operator parameter external to genome and IR; unavailable dependencies return a clear `UNAVAILABLE` at setup.
+- For a valid request that returns `UNSUPPORTED`, `WIDTH_OVERFLOW`, `DEVICE_FAILURE` or `TIMEOUT`, CPU fallback recomputes the *whole affected request* and records failure and wasted work. In shadow mode CPU results always win and any divergence fails the experiment. In active mode known `MISMATCH` **aborts run and quarantines backend**; it must not be papered over with silent fallback.
+- Backend modes: `disabled`/`cpu`/`shadow`/`rtl-sim`/`fpga`. Device selection is a run-level operator parameter external to genome and IR. **Initialization is a separate API boundary:** attempting to construct/select an optional backend without its required toolchain, device or supported configuration raises `BackendUnavailable` *before* any `evaluate_batch` call. The trusted operator chooses whether to fail the run setup or explicitly start a fresh CPU-mode run and records that choice in its manifest. No `SignatureReply` is produced at setup, and `UNAVAILABLE` is **not** a request status. After successful initialization, per-request failures use the declared `SignatureReply.status` cases and fallback/abort rules above.
 
 ## 6. Search integration and batching discipline
 
