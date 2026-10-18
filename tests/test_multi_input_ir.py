@@ -45,18 +45,18 @@ def test_three_argument_typed_program_is_checked_executed_and_exported():
         ],
     }
     assert check_tree(expression, base) == "Int"
-    assert run_ir_args(expression, (1, 9, 4)) == 4
-    assert run_ir_args(expression, (5, 9, 4)) == 5
+    assert run_ir_args(expression, (1, 9, 4), expected_arity=3) == 4
+    assert run_ir_args(expression, (5, 9, 4), expected_arity=3) == 5
     assert "def solve(x: int, y: int, z: int) -> int:" in render_python(expression, base)
     with pytest.raises(IRViolation):
-        run_ir_args(expression, (1, 2))
+        run_ir_args(expression, (1, 2), expected_arity=3)
 
 
 def test_signature_is_not_hardcoded_to_three():
     base = validate_genome(new_genome(4))["genome"]["base"]
     arg3 = {"op": "Arg", "index": 3}
     assert check_tree(arg3, base) == "Int"
-    assert run_ir_args(arg3, (-1, 5, 6, 17)) == 17
+    assert run_ir_args(arg3, (-1, 5, 6, 17), expected_arity=4) == 17
     assert "a3: int" in render_python(arg3, base)
     with pytest.raises(IRViolation):
         check_tree({"op": "Arg", "index": 4}, base)
@@ -80,11 +80,11 @@ def test_unsupported_versions_and_non_integer_runtime_inputs_fail_closed():
     with pytest.raises(ContractError):
         validate_genome(genome)
     with pytest.raises(IRViolation):
-        run_ir_args(ARG2, (1, True, 2))
+        run_ir_args(ARG2, (1, True, 2), expected_arity=3)
     with pytest.raises(IRViolation):
-        run_ir_args(ARG2, (1, 2, 3), Limits(max_ops=0))
+        run_ir_args(ARG2, (1, 2, 3), Limits(max_ops=0), expected_arity=3)
     with pytest.raises(IRViolation):
-        run_ir_args(ARG2, (1, 2, 2**70), Limits(max_bits=64))
+        run_ir_args(ARG2, (1, 2, 2**70), Limits(max_bits=64), expected_arity=3)
 
 
 def test_existing_call_signature_and_code_export_remain_unchanged():

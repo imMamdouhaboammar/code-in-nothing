@@ -114,12 +114,12 @@ def run_ir_args(
     limits: Limits = Limits(),
     ops_counter: list[int] | None = None,
     *,
-    expected_arity: int | None = None,
+    expected_arity: int,
 ) -> int:
     """Execute checked IR; callers with a declared signature must bind its arity."""
     if not isinstance(arguments, tuple) or not 1 <= len(arguments) <= 8:
         raise IRViolation("argument tuple must contain 1..8 inputs")
-    if expected_arity is not None and (
+    if (
         type(expected_arity) is not int
         or not 1 <= expected_arity <= 8
         or len(arguments) != expected_arity
