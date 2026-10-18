@@ -22,6 +22,16 @@ class Proposal:
     rng_seed: int
 
 
+@dataclass
+class SearchStats:
+    """Mutable measurements of search work, not a fitness or proof signal."""
+
+    attempted_shapes: int = 0
+    observational_prunes: int = 0
+    integer_representatives: int = 0
+    boolean_representatives: int = 0
+
+
 @dataclass(frozen=True)
 class _Entry:
     expression: dict
@@ -38,7 +48,11 @@ def _size_depth(node: dict) -> tuple[int, int]:
 
 
 def candidate_stream(
-    parent: dict, base: dict, seed: int = 0, max_proposals: int = 2000
+    parent: dict,
+    base: dict,
+    seed: int = 0,
+    max_proposals: int = 2000,
+    stats: SearchStats | None = None,
 ) -> Iterator[Proposal]:
     """Enumerate typed expressions by AST node count, with bounded work.
 
@@ -74,12 +88,21 @@ def candidate_stream(
     produced = 0
 
     def add(kind: str, size: int, expr: dict, values: tuple, depth: int) -> bool:
-        if depth > max_depth or values in signatures[kind]:
+        if depth > max_depth:
+            return False
+        if values in signatures[kind]:
+            if stats is not None:
+                stats.observational_prunes += 1
             return False
         if kind == "Bool" and len(signatures["Bool"]) >= max_proposals:
             return False
         signatures[kind].add(values)
         bank[kind][size].append(_Entry(expr, values, depth))
+        if stats is not None:
+            if kind == "Bool":
+                stats.boolean_representatives += 1
+            else:
+                stats.integer_representatives += 1
         return True
 
     # Parent is available as a reusable expression at its honest syntax cost.
@@ -119,6 +142,8 @@ def candidate_stream(
                         continue
                     for op in operators:
                         shapes += 1
+                        if stats is not None:
+                            stats.attempted_shapes = shapes
                         if shapes > max_shapes:
                             return
                         if op == "Add":
@@ -153,6 +178,8 @@ def candidate_stream(
                             if depth > max_depth:
                                 continue
                             shapes += 1
+                            if stats is not None:
+                                stats.attempted_shapes = shapes
                             if shapes > max_shapes:
                                 return
                             values = tuple(
