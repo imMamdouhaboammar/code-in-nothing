@@ -21,6 +21,8 @@ class Cost:
     training_interpreter_operations: int = 0
     predicate_evaluations: int = 0
     selection_operations: int = 0
+    mutation_attempts: int = 0
+    verifier_cases: int = 0
 
     def __post_init__(self) -> None:
         if any(
