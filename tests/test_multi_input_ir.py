@@ -1,13 +1,15 @@
 """M2 regression contracts: legacy two-input IR and versioned N-input IR."""
 
+import json
 from copy import deepcopy
 from pathlib import Path
 
 import pytest
 
-from cin.contracts import ContractError, load_genome, validate_genome
+from cin.contracts import ContractError, load_genome, load_world, validate_genome
 from cin.ir import IRViolation, Limits, check_tree, render_python, run_ir, run_ir_args
 from cin.search import candidate_stream
+from cin.worlds import admit_world, verify_program
 
 ROOT = Path(__file__).resolve().parents[1]
 LEGACY = load_genome(ROOT / "examples/seed-genome.v0.1.yaml")
@@ -115,3 +117,24 @@ def test_eight_argument_search_has_bounded_probe_work():
 def test_legacy_lazy_projection_does_not_evaluate_unused_oversized_argument():
     projection = {"op": "Arg", "index": 0}
     assert run_ir(projection, 7, 2**128, Limits(max_bits=16)) == 7
+
+
+def test_legacy_world_rejects_three_input_genome_even_without_arg2_reference():
+    base = validate_genome(new_genome(3))["genome"]["base"]
+    world = load_world(ROOT / "examples/world-max2.v0.1.yaml")
+    unused_third_argument = {"op": "Arg", "index": 0}
+    assert verify_program(unused_third_argument, world, base).status == "INVALID"
+    assert admit_world(world, base, max_proposals=5).status == "REJECTED"
+
+
+def test_interpreter_rejects_partial_call_with_explicit_declared_arity():
+    projection = {"op": "Arg", "index": 0}
+    with pytest.raises(IRViolation):
+        run_ir_args(projection, (1, 2), expected_arity=3)
+    assert run_ir_args(projection, (1, 2, 3), expected_arity=3) == 1
+
+
+def test_versioned_genome_schema_is_mirrored_for_external_consumers():
+    packaged = ROOT / "cin/schemas/seed-genome.v0.2.schema.json"
+    public = ROOT / "schemas/seed-genome.v0.2.schema.json"
+    assert json.loads(public.read_text()) == json.loads(packaged.read_text())
