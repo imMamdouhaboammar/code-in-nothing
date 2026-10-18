@@ -218,13 +218,18 @@ class GuidedFrontier:
                 break
         self._entries = retained
 
-    def select(self) -> dict:
-        if not self._entries:
-            raise ValueError("frontier is empty")
+    def select(self, *, excluded: set[str] | None = None) -> dict:
+        eligible = (
+            (key, item)
+            for key, item in self._entries.items()
+            if key not in (excluded if excluded is not None else ())
+        )
         ranked = sorted(
-            self._entries.items(),
+            eligible,
             key=lambda item: (-item[1][1].pass_fraction, item[0]),
         )
+        if not ranked:
+            raise ValueError("frontier has no unexpanded parent")
         return deepcopy(ranked[0][1][0])
 
     def neighbors(self, parent: dict) -> tuple[dict, ...]:
