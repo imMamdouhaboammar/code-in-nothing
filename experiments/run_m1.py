@@ -13,7 +13,7 @@ from pathlib import Path
 
 from cin.contracts import load_genome, load_world
 from cin.ir import canonical_hash, run_ir
-from cin.search import candidate_stream
+from cin.search import SearchStats, candidate_stream
 from cin.worlds import check_formula, verify_program
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,10 +30,12 @@ def run_task(filename: str, budget: int, base: dict) -> dict:
     screen_operations = [0]
     formal_checks = 0
     formal_operations = 0
+    stats = SearchStats()
     count = 0
     start = time.process_time()
     for count, proposal in enumerate(
-        candidate_stream(base["starting_expression"], base, seed=0, max_proposals=budget), 1
+        candidate_stream(base["starting_expression"], base, seed=0, max_proposals=budget, stats=stats),
+        1
     ):
         for x, y in SCREEN:
             screened += 1
@@ -59,7 +61,10 @@ def run_task(filename: str, budget: int, base: dict) -> dict:
                     "formal_interpreter_operations": formal_operations,
                     "cpu_seconds": round(time.process_time() - start, 3),
                     "world_admission": "not_run",
-                    "internal_shape_attempts": "not_instrumented",
+                    "internal_shape_attempts": stats.attempted_shapes,
+                    "observational_prunes": stats.observational_prunes,
+                    "integer_representatives": stats.integer_representatives,
+                    "boolean_representatives": stats.boolean_representatives,
                 }
     return {
         "task_id": world["id"],
@@ -73,7 +78,10 @@ def run_task(filename: str, budget: int, base: dict) -> dict:
         "formal_interpreter_operations": formal_operations,
         "cpu_seconds": round(time.process_time() - start, 3),
         "world_admission": "not_run",
-        "internal_shape_attempts": "not_instrumented",
+        "internal_shape_attempts": stats.attempted_shapes,
+                    "observational_prunes": stats.observational_prunes,
+                    "integer_representatives": stats.integer_representatives,
+                    "boolean_representatives": stats.boolean_representatives,
     }
 
 
