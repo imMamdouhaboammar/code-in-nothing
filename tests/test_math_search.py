@@ -62,9 +62,7 @@ def test_legacy_contract_rejects_arithmetic_terms():
 
 def test_versioned_subtraction_rejects_unrecognized_operations():
     invalid = deepcopy(ABSDIFF)
-    invalid["postcondition"]["or"][0]["and"][1] = {
-        "eq": ["result", {"abs": {"sub": ["x", "y"]}}]
-    }
+    invalid["postcondition"]["or"][0]["and"][1] = {"eq": ["result", {"abs": {"sub": ["x", "y"]}}]}
     with pytest.raises(ContractError):
         validate_world(invalid)
 
@@ -76,12 +74,8 @@ def test_signed_direction_and_ties_are_mathematically_constrained():
     }
     assert verify_program(subtract, ABSDIFF, BASE).status == "FAIL"
     assert verify_program({"op": "Arg", "index": 0}, MIN2, BASE).status == "FAIL"
-    assert check_formula(
-        ABSDIFF["postcondition"], {"x": -4, "y": 2, "result": 6}
-    )
-    assert not check_formula(
-        ABSDIFF["postcondition"], {"x": -4, "y": 2, "result": -6}
-    )
+    assert check_formula(ABSDIFF["postcondition"], {"x": -4, "y": 2, "result": 6})
+    assert not check_formula(ABSDIFF["postcondition"], {"x": -4, "y": 2, "result": -6})
 
 
 def test_cost_layers_determinism_and_no_duplicate_asts():
@@ -94,9 +88,7 @@ def test_cost_layers_determinism_and_no_duplicate_asts():
     def size(node):
         return 1 + sum(size(child) for child in node.get("args", ()))
 
-    assert [size(p.expression) for p in first] == sorted(
-        size(p.expression) for p in first
-    )
+    assert [size(p.expression) for p in first] == sorted(size(p.expression) for p in first)
     assert all(check_tree(p.expression, BASE) == "Int" for p in first)
 
 
