@@ -181,11 +181,11 @@ class Archive:
             # The effective resource contract may not drift from the five-gene
             # stop station or the directive recorded in this same manifest.
             genes = config["genome"]["genome"]
-            if (
-                policy["max_evals"] > genes["stop_station"]["max_candidate_evaluations"]
-                or policy["epoch_proposals"]
-                != min(policy["max_evals"], genes["directive"]["proposals_per_epoch"])
-            ):
+            max_allowed = genes["stop_station"]["max_candidate_evaluations"]
+            epoch_cap = genes["directive"]["proposals_per_epoch"]
+            if policy["max_evals"] > max_allowed:
+                raise ValueError("replay resource policy mismatch")
+            if policy["epoch_proposals"] != min(policy["max_evals"], epoch_cap):
                 raise ValueError("replay resource policy mismatch")
             events = Archive._read_verified_events(root / "events.jsonl")
             if (
