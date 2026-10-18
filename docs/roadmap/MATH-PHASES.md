@@ -2,6 +2,14 @@
 
 **Status:** Proposed expansion of [P0-P6 roadmap](PHASES.md), not implementation progress. **Authority:** [math spec v0.5](../specs/2026-10-18-cin-mathematical-evolution-v0.5.md). Stage names identify evaluation gates, not calendar promises.
 
+**Active engineering checkpoint (2026-10-18):** M1 is implemented on the unmerged
+[feature PR #1](https://github.com/imMamdouhaboammar/code-in-nothing/pull/1),
+with [finite-domain measurements](../research/2026-10-18-m1-math-synthesis-evidence.md)
+and [ADR 0005](../adr/0005-cost-layered-observational-search.md).
+This does not yet mark the M1 scientific comparison gate complete: matched
+random/legacy/CEGIS baselines and admission-cost accounting remain required.
+M2 onward are design/research targets, not implemented features.
+
 | Gate | Dependency | Shippable verified artifact | Hard exit criterion |
 | --- | --- | --- | --- |
 | M0: Baseline | existing P0 | reproducible current v0.1 outputs + frozen tests | no code/test regression; accurate facts about 2-input finite domain |
