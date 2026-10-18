@@ -46,7 +46,11 @@ def validate_genome(genome: dict) -> dict:
 
 def validate_world(world: dict) -> dict:
     version = world.get("api_version") if isinstance(world, dict) else None
-    schema = "world-spec.v0.2.schema.json" if version == "cin.world/v0.2" else "world-spec.v0.1.schema.json"
+    schema = (
+        "world-spec.v0.2.schema.json"
+        if version == "cin.world/v0.2"
+        else "world-spec.v0.1.schema.json"
+    )
     _validate(world, schema)
 
     def has_term(node, term):
