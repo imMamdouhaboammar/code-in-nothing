@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import time
 from copy import deepcopy
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from .archive import Archive
 from .contracts import validate_genome
@@ -86,6 +88,10 @@ class Experiment:
         self.archive = archive
         if type(seed) is not int or seed < 0:
             raise ValueError("rng seed must be a nonnegative integer")
+        if max_evals is not None and (type(max_evals) is not int or max_evals < 1):
+            raise ValueError("evaluation budget must be a positive integer")
+        if type(world_evolution) is not bool or type(inheritance) is not bool:
+            raise ValueError("evolution flags must be booleans")
         self.seed = seed
         self.world_evolution = world_evolution
         self.inheritance = inheritance
@@ -101,6 +107,23 @@ class Experiment:
         )
 
     def run(self) -> dict:
+        # Persist public inputs and effective budgets before any verifier work.
+        # Witness programs, private test cases and CPU timing are excluded.
+        self.archive.write_manifest(
+            {
+                "genome": self.genome,
+                "world": self.world,
+                "seed": self.seed,
+                "resource_policy": {
+                    "max_evals": self.max_evals,
+                    "epoch_proposals": self.epoch_proposals,
+                    "world_evolution": self.world_evolution,
+                    "inheritance": self.inheritance,
+                },
+                "runtime_version": "cin/0.1.0",
+                "verifier_version": VERIFIER_VERSION,
+            }
+        )
         # World witnesses are checked inside verifier admission and not exposed to proposal generator.
         initial = admit_world(self.world, self.base, max_proposals=250, max_cases=512)
         self.archive.append(
@@ -357,3 +380,39 @@ class Experiment:
             "stop_reason": stop_reason,
             "archive_chain_valid": Archive.verify_chain(self.archive.journal),
         }
+
+
+def replay_experiment(directory: str | Path) -> dict:
+    """Independently reexecute a completed manifest and reject trace divergence.
+
+    This is completed-run reproduction, NOT interruption recovery or crash-safe
+    checkpoint restoration. No archived verifier verdict is taken as truth.
+    """
+    manifest, expected_trace = Archive.read_normalized_trace(directory)
+    configuration = manifest["configuration"]
+    if (
+        configuration["runtime_version"] != "cin/0.1.0"
+        or configuration["verifier_version"] != VERIFIER_VERSION
+    ):
+        raise ValueError("incompatible replay runtime or verifier version")
+    policy = configuration["resource_policy"]
+    with TemporaryDirectory(prefix="cin-replay-") as temporary:
+        experiment = Experiment(
+            deepcopy(configuration["genome"]),
+            deepcopy(configuration["world"]),
+            Archive(temporary),
+            seed=configuration["seed"],
+            max_evals=policy["max_evals"],
+            world_evolution=policy["world_evolution"],
+            inheritance=policy["inheritance"],
+        )
+        if (
+            experiment.max_evals != policy["max_evals"]
+            or experiment.epoch_proposals != policy["epoch_proposals"]
+        ):
+            raise ValueError("replay policy differs from effective run budget")
+        result = experiment.run()
+        _, actual_trace = Archive.read_normalized_trace(temporary)
+    if actual_trace != expected_trace:
+        raise ValueError("deterministic replay divergence")
+    return result
