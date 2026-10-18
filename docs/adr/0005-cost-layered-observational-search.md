@@ -57,8 +57,8 @@ remain unchanged.
 ## Risks and follow-up gates
 
 The fixed-probe semantic reduction is incomplete; increasing budgets can
-generate more branches without guaranteeing discovery. The current pilot
-does not instrument all internal shape attempts, witness admission work,
+generate more branches without guaranteeing discovery. The current pilot reports attempted shapes and observational pruning, but
+not the complete cost of fingerprint construction, witness admission work,
 or comparison baselines. Search resource accounting should be upgraded
 before claiming relative computational efficiency. M2 must version
 multi-argument signatures before attempting `median3` or `clamp`.
