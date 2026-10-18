@@ -109,6 +109,50 @@ def test_forged_heritability_certificates_are_rechecked(tmp_path):
         assert False, "a fabricated pass must not become inherited growth"
 
 
+
+def test_offspring_excludes_parent_skills_without_independent_replay():
+    from cin.worlds import expand_domain
+
+    program = {
+        "op": "If",
+        "args": [
+            {
+                "op": "LessThan",
+                "args": [{"op": "Arg", "index": 0}, {"op": "Arg", "index": 1}],
+            },
+            {"op": "Arg", "index": 1},
+            {"op": "Arg", "index": 0},
+        ],
+    }
+    expanded = expand_domain(WORLD, 1)
+    inherited_hash = canonical_hash(program)
+    certified_worlds = (WORLD, expanded)
+    approved_skills = {canonical_hash(w): deepcopy(program) for w in certified_worlds}
+    parent = {
+        "id": "parent",
+        "genome": deepcopy(GENOME),
+        "skills": {
+            **approved_skills,
+            "unreplayed-parent-only-capability": {"op": "Arg", "index": 0},
+        },
+    }
+    certificates = [
+        {"status": "PASS", "world_hash": canonical_hash(w), "program_hash": inherited_hash}
+        for w in certified_worlds
+    ]
+
+    child = spawn_verified(
+        parent,
+        {"expression": program, "hash": inherited_hash},
+        certificates,
+        child_id="child",
+        worlds=list(certified_worlds),
+    )
+    assert child["skills"] == approved_skills
+    assert "unreplayed-parent-only-capability" in parent["skills"]
+    assert canonical_hash(child["genome"]["genome"]["base"]["starting_expression"]) == inherited_hash
+
+
 def test_archive_detects_tampering(tmp_path):
     archive = Archive(tmp_path)
     archive.append("BIRTH", {"organism_id": "x"})
