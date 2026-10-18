@@ -126,10 +126,6 @@ def run_ir_args(
             raise IRViolation("integer bit limit")
         return v
 
-    # Input bit limits apply even when a lazy conditional does not read an argument.
-    for value in arguments:
-        bound(value)
-
     def execute(v, depth):
         operations[0] += 1
         if (
