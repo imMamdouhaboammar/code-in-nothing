@@ -1,0 +1,423 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/cin/seed-genome.v0.2.schema.json",
+  "title": "CIN Seed Genome v0.2",
+  "description": "Contract shape; semantic checks (weight sum, governor limits, task coherence) remain mandatory.",
+  "type": "object",
+  "properties": {
+    "api_version": {
+      "const": "cin.genome/v0.2"
+    },
+    "seed_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "genome": {
+      "type": "object",
+      "properties": {
+        "base": {
+          "type": "object",
+          "properties": {
+            "organism_class": {
+              "type": "string",
+              "minLength": 1
+            },
+            "cin_ir_version": {
+              "const": "0.2"
+            },
+            "input_types": {
+              "type": "array",
+              "items": {
+                "const": "Int"
+              },
+              "minItems": 1,
+              "maxItems": 8
+            },
+            "return_type": {
+              "const": "Int"
+            },
+            "starting_expression": {
+              "$ref": "#/$defs/irNode"
+            },
+            "allowed_primitives": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Arg",
+                  "ConstInt",
+                  "Add",
+                  "Sub",
+                  "LessThan",
+                  "Equal",
+                  "If"
+                ]
+              },
+              "minItems": 1
+            },
+            "allowed_constants": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "minItems": 1
+            },
+            "max_ast_depth": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_ast_nodes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "invariants": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "typed",
+                  "pure",
+                  "deterministic",
+                  "resource_bounded"
+                ]
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "organism_class",
+            "cin_ir_version",
+            "input_types",
+            "return_type",
+            "starting_expression",
+            "allowed_primitives",
+            "allowed_constants",
+            "max_ast_depth",
+            "max_ast_nodes",
+            "invariants"
+          ],
+          "additionalProperties": false
+        },
+        "driver": {
+          "type": "object",
+          "properties": {
+            "proposal_policy": {
+              "type": "string",
+              "enum": [
+                "typed_grammar_hybrid"
+              ]
+            },
+            "mutation_operators": {
+              "type": "object",
+              "properties": {
+                "replace_subtree": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "substitute_primitive": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "insert_conditional": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "compose_subtree": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "enumerate_bounded": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "replace_subtree",
+                "substitute_primitive",
+                "insert_conditional",
+                "compose_subtree",
+                "enumerate_bounded"
+              ],
+              "additionalProperties": false
+            },
+            "adaptation": {
+              "type": "string",
+              "enum": [
+                "verified_reward_update"
+              ]
+            },
+            "meta_mutation": {
+              "type": "string",
+              "enum": [
+                "gated_offspring_only"
+              ]
+            },
+            "reproduce": {
+              "type": "string",
+              "enum": [
+                "when_heritable_capability_verified"
+              ]
+            },
+            "crossover": {
+              "type": "string",
+              "enum": [
+                "disabled"
+              ]
+            }
+          },
+          "required": [
+            "proposal_policy",
+            "mutation_operators",
+            "adaptation",
+            "meta_mutation",
+            "reproduce",
+            "crossover"
+          ],
+          "additionalProperties": false
+        },
+        "directive": {
+          "type": "object",
+          "properties": {
+            "focus_world_families": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "arithmetic",
+                  "comparisons",
+                  "composition"
+                ]
+              },
+              "minItems": 1
+            },
+            "optimize_for": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "verified_correctness",
+                  "reuse",
+                  "search_cost"
+                ]
+              },
+              "minItems": 1
+            },
+            "proposals_per_epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_active_offspring": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "exploration_bias": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "required": [
+            "focus_world_families",
+            "optimize_for",
+            "proposals_per_epoch",
+            "max_active_offspring",
+            "exploration_bias"
+          ],
+          "additionalProperties": false
+        },
+        "maturity_point": {
+          "type": "object",
+          "properties": {
+            "metric_policy_version": {
+              "const": "cin.maturity/v0.1"
+            },
+            "min_verified_task_specs": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_verified_task_families": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sealed_transfer_tasks": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_sealed_transfer_pass_rate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "min_reused_verified_abstractions": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "require_regression_free_replay": {
+              "const": true
+            },
+            "active_contract_immutable": {
+              "const": true
+            }
+          },
+          "required": [
+            "metric_policy_version",
+            "min_verified_task_specs",
+            "min_verified_task_families",
+            "sealed_transfer_tasks",
+            "min_sealed_transfer_pass_rate",
+            "min_reused_verified_abstractions",
+            "require_regression_free_replay",
+            "active_contract_immutable"
+          ],
+          "additionalProperties": false
+        },
+        "stop_station": {
+          "type": "object",
+          "properties": {
+            "max_candidate_evaluations": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_epochs": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "plateau_consecutive_epochs": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "plateau_grace_epochs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "terminal_on_governor_violation": {
+              "const": true
+            },
+            "archive_on_stop": {
+              "const": true
+            },
+            "active_contract_immutable": {
+              "const": true
+            }
+          },
+          "required": [
+            "max_candidate_evaluations",
+            "max_epochs",
+            "plateau_consecutive_epochs",
+            "plateau_grace_epochs",
+            "terminal_on_governor_violation",
+            "archive_on_stop",
+            "active_contract_immutable"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "base",
+        "driver",
+        "directive",
+        "maturity_point",
+        "stop_station"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "api_version",
+    "seed_id",
+    "genome"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "irNode": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "Arg"
+            },
+            "index": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            }
+          },
+          "required": [
+            "op",
+            "index"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "ConstInt"
+            },
+            "value": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "op",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "enum": [
+                "Add",
+                "Sub",
+                "LessThan",
+                "Equal"
+              ]
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/irNode"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "required": [
+            "op",
+            "args"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "If"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/irNode"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "op",
+            "args"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}
