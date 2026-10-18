@@ -113,10 +113,18 @@ def run_ir_args(
     arguments: tuple[int, ...],
     limits: Limits = Limits(),
     ops_counter: list[int] | None = None,
+    *,
+    expected_arity: int | None = None,
 ) -> int:
-    """Execute a statically checked typed IR with an explicit argument tuple."""
+    """Execute checked IR; callers with a declared signature must bind its arity."""
     if not isinstance(arguments, tuple) or not 1 <= len(arguments) <= 8:
         raise IRViolation("argument tuple must contain 1..8 inputs")
+    if expected_arity is not None and (
+        type(expected_arity) is not int
+        or not 1 <= expected_arity <= 8
+        or len(arguments) != expected_arity
+    ):
+        raise IRViolation("arguments do not match declared function arity")
     if any(type(value) is not int for value in arguments):
         raise IRViolation("integer inputs required")
     operations = [0]
