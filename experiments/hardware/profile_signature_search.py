@@ -164,9 +164,13 @@ def _profile_diagnostic(profiler: cProfile.Profile, trace_sha256: str) -> dict:
     signature_lines = set(_signature_generator_lines())
     rows = []
     signature_self_ns = 0
-    for (filename, line, function), (primitive_calls, calls, self_s, cumulative_s, _) in (
-        _pstats_rows(profiler)
-    ):
+    for (filename, line, function), (
+        primitive_calls,
+        calls,
+        self_s,
+        cumulative_s,
+        _,
+    ) in _pstats_rows(profiler):
         self_ns = int(self_s * 1_000_000_000)
         if Path(filename) == search_path and function == "<genexpr>" and line in signature_lines:
             signature_self_ns += self_ns
