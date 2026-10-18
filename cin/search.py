@@ -131,7 +131,9 @@ def candidate_stream(
     # Parent is available as a reusable expression at its honest syntax cost.
     size, depth = _size_depth(parent)
     try:
-        observations = tuple(run_ir_args(parent, point, limits, expected_arity=arity) for point in probes)
+        observations = tuple(
+            run_ir_args(parent, point, limits, expected_arity=arity) for point in probes
+        )
     except IRViolation:
         observations = None
     if observations is not None and size <= max_nodes:
