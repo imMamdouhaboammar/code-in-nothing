@@ -40,6 +40,9 @@ class Admission:
 def _term(v, values):
     if type(v) is int:
         return v
+    if isinstance(v, dict) and set(v) == {"sub"}:
+        a, b = v["sub"]
+        return _term(a, values) - _term(b, values)
     if v in ("x", "y", "result"):
         return values[v]
     raise WorldViolation("unrecognized term")
