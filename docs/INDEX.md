@@ -9,6 +9,10 @@ This is the starting point for developers, reviewers and researchers. **The exec
 | Read | Purpose | Authority |
 | [Applications](APPLICATIONS.md) | Verified capabilities at each milestone and the production applications they unlock | Cumulative; append-only; grounded in CI-passing runtime |
 | --- | --- | --- |
+| [Hardware co-design — full system spec](superpowers/specs/2026-10-18-cin-hardware-co-design.md) | Optional CPU/RTL signature architecture, versioned protocol, safety and tournament gates | Proposed design; not implemented |
+| [Hardware phase gates H0–H5](roadmap/HARDWARE-PHASES.md) | Testable implementation slices, stop/go decisions and benchmark controls | Proposed engineering roadmap |
+| [Hardware source/evidence ledger](research/2026-10-18-hardware-co-design-evidence.md) | Pinned openTPU/auto-arch-tournament sources, falsifiable hypotheses | Source review, no CIN speedup measured |
+| [ADR 0009 — optional hardware backends](adr/0009-optional-hardware-backends.md) | CPU-first decision and correctness/trust boundaries | Proposed architectural decision |
 | [Verified mathematical evolution v0.6](specs/2026-10-18-cin-verified-mathematical-evolution-v0.6.md) | Integrated architecture, measured-cost contract, maturity ledger, falsifiable M1–M6 phase gates | Proposed v0.6 research program, not runtime release |
 | [Integrated specification](specs/2026-10-18-cin-integrated-system-spec-v0.4.md) | Goals, invariants, interfaces, transition model, proposed acceptance | Normative future design |
 | [Mathematical evolution v0.5](specs/2026-10-18-cin-mathematical-evolution-v0.5.md) | Integrated deeper mathematical synthesis/verification design | Proposed, not implemented |
