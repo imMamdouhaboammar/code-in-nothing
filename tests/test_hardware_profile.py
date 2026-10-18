@@ -55,8 +55,14 @@ def test_manifest_rejects_invalid_and_unsafe_contracts(mutate):
 
 
 def test_repeated_world_search_is_identical_except_timing():
-    workload = {"id": "exhaustion", "kind": "world", "world": "world-min2.v0.1.yaml",
-                "arity": 2, "seed": 0, "max_proposals": 1}
+    workload = {
+        "id": "exhaustion",
+        "kind": "world",
+        "world": "world-min2.v0.1.yaml",
+        "arity": 2,
+        "seed": 0,
+        "max_proposals": 1,
+    }
     first = run_workload(workload, BASE)
     second = run_workload(workload, BASE)
     assert first["status"] == second["status"] == "UNKNOWN"
@@ -70,8 +76,7 @@ def test_repeated_world_search_is_identical_except_timing():
 
 
 def test_three_input_probe_workload_never_claims_world_verification():
-    workload = {"id": "search3", "kind": "search_only", "arity": 3,
-                "seed": 1, "max_proposals": 12}
+    workload = {"id": "search3", "kind": "search_only", "arity": 3, "seed": 1, "max_proposals": 12}
     result = run_workload(workload, BASE)
     assert result["status"] == "SEARCH_ONLY"
     assert result["verifier_calls"] == 0
@@ -81,10 +86,19 @@ def test_three_input_probe_workload_never_claims_world_verification():
 
 def test_study_uses_unprofiled_primary_samples_and_separate_profile_probe():
     source = load_manifest(MANIFEST)
-    manifest = {**source, "workloads": [
-        {"id": "exhaustion", "kind": "world", "world": "world-min2.v0.1.yaml",
-         "arity": 2, "seed": 0, "max_proposals": 1}
-    ]}
+    manifest = {
+        **source,
+        "workloads": [
+            {
+                "id": "exhaustion",
+                "kind": "world",
+                "world": "world-min2.v0.1.yaml",
+                "arity": 2,
+                "seed": 0,
+                "max_proposals": 1,
+            }
+        ],
+    }
     result = run_study(manifest, repetitions=2, profile=True)
     assert result["protocol"] == "cin.hardware.h0.report/v0.1"
     assert len(result["runs"]) == 1
