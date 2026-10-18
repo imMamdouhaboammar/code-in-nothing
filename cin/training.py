@@ -226,9 +226,7 @@ class GuidedFrontier:
                 break
         self._entries = retained
 
-    def select(
-        self, *, excluded: set[str] | None = None, stats: GuidedStats | None = None
-    ) -> dict:
+    def select(self, *, excluded: set[str] | None = None, stats: GuidedStats | None = None) -> dict:
         eligible = (
             (key, item)
             for key, item in self._entries.items()
@@ -244,9 +242,7 @@ class GuidedFrontier:
             stats.selection_operations += len(self._entries)
         return deepcopy(ranked[0][1][0])
 
-    def neighbors(
-        self, parent: dict, *, stats: GuidedStats | None = None
-    ) -> tuple[dict, ...]:
+    def neighbors(self, parent: dict, *, stats: GuidedStats | None = None) -> tuple[dict, ...]:
         """Deterministic bounded typed structural mutations of the selected parent."""
         check_tree(parent, self.base)
         arity = len(self.base.get("input_types", ("Int", "Int")))
