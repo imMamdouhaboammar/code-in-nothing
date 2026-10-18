@@ -98,8 +98,7 @@ def candidate_stream(
         leaves.extend({"op": "ConstInt", "value": c} for c in base["allowed_constants"])
     for leaf in leaves:
         observations = tuple(
-            (x, y)[leaf["index"]] if leaf["op"] == "Arg" else leaf["value"]
-            for x, y in _PROBES
+            (x, y)[leaf["index"]] if leaf["op"] == "Arg" else leaf["value"] for x, y in _PROBES
         )
         if add("Int", 1, leaf, observations, 1):
             produced += 1
@@ -157,8 +156,7 @@ def candidate_stream(
                             if shapes > max_shapes:
                                 return
                             values = tuple(
-                                a if p else b
-                                for p, a, b in zip(pred.values, yes.values, no.values)
+                                a if p else b for p, a, b in zip(pred.values, yes.values, no.values)
                             )
                             expr = {
                                 "op": "If",
