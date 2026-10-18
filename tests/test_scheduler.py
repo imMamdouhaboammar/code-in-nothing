@@ -88,3 +88,25 @@ def test_run_is_deterministic_with_same_seed_and_inputs():
     a = FiniteScheduler(bounded_genome(), WORLD, max_evals=3).run()
     b = FiniteScheduler(bounded_genome(), WORLD, max_evals=3).run()
     assert a == b
+
+
+def test_opt_in_scheduler_preserves_legacy_manifest_replay(tmp_path):
+    """P1-02 cannot invalidate the P1-01 completed-run verification path."""
+    from cin.archive import Archive
+    from cin.evolution import Experiment, replay_experiment
+
+    archive_dir = tmp_path / "legacy"
+    original = Experiment(
+        deepcopy(GENOME),
+        deepcopy(WORLD),
+        Archive(archive_dir),
+        seed=0,
+        max_evals=1,
+        world_evolution=False,
+        inheritance=False,
+    ).run()
+    modern = FiniteScheduler(bounded_genome(), WORLD, max_evals=1).run()
+    independently_replayed = replay_experiment(archive_dir)
+    assert independently_replayed["candidate_evaluations"] == original["candidate_evaluations"]
+    assert modern["terminal_events"] == 1
+    assert modern["world_admission"] == "ADMITTED"
