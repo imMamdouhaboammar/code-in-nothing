@@ -66,7 +66,7 @@ def _validate_workload(value: object) -> dict:
     if not _positive_integer(value["max_proposals"], maximum=30000):
         raise ValueError("proposal budget must be 1..30000")
     if kind == "world":
-        if value["arity"] != 2 or value["world"] not in WORLDS:
+        if value["arity"] != 2 or type(value["world"]) is not str or value["world"] not in WORLDS:
             raise ValueError("only named two-input world fixtures are allowed")
     elif value["arity"] < 3:
         raise ValueError("search-only probe extension must have at least 3 inputs")
@@ -140,7 +140,9 @@ def _signature_generator_lines() -> list[int]:
     for node in ast.walk(ast.parse(source)):
         if not isinstance(node, ast.Assign):
             continue
-        if not any(isinstance(target, ast.Name) and target.id == "values" for target in node.targets):
+        if not any(
+            isinstance(target, ast.Name) and target.id == "values" for target in node.targets
+        ):
             continue
         call = node.value
         if (
@@ -163,7 +165,7 @@ def _profile_diagnostic(profiler: cProfile.Profile, trace_sha256: str) -> dict:
     rows = []
     signature_self_ns = 0
     for (filename, line, function), (primitive_calls, calls, self_s, cumulative_s, _) in (
-        profiler.getstats() if False else _pstats_rows(profiler)
+        _pstats_rows(profiler)
     ):
         self_ns = int(self_s * 1_000_000_000)
         if Path(filename) == search_path and function == "<genexpr>" and line in signature_lines:
@@ -263,12 +265,8 @@ def run_workload(
             tick = time.perf_counter_ns()
             for x, y in screen:
                 screen_cases += 1
-                output = run_ir(
-                    proposal.expression, x, y, ops_counter=screen_ops
-                )
-                if not check_formula(
-                    world["postcondition"], {"x": x, "y": y, "result": output}
-                ):
+                output = run_ir(proposal.expression, x, y, ops_counter=screen_ops)
+                if not check_formula(world["postcondition"], {"x": x, "y": y, "result": output}):
                     accepted = False
                     break
             screen_wall += time.perf_counter_ns() - tick
@@ -338,8 +336,7 @@ def run_study(manifest: dict, *, repetitions: int = 3, profile: bool = True) -> 
     runs = []
     for workload in manifest["workloads"]:
         samples = [
-            run_workload(workload, base, screen=screen, profile=False)
-            for _ in range(repetitions)
+            run_workload(workload, base, screen=screen, profile=False) for _ in range(repetitions)
         ]
         fingerprints = {
             (
