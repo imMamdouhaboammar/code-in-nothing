@@ -45,9 +45,7 @@ def main() -> int:
         panel = PublicTrainingPanel(world, PUBLIC_CASES)
         for seed in args.seeds:
             for arm in ARMS:
-                result = run_trial(
-                    arm, world, base, panel, seed=seed, max_proposals=args.proposals
-                )
+                result = run_trial(arm, world, base, panel, seed=seed, max_proposals=args.proposals)
                 result["task"] = name
                 results.append(result)
 
@@ -59,9 +57,7 @@ def main() -> int:
             "trials": len(group),
             "verified_successes": len(successful),
             "success_rate": len(successful) / len(group),
-            "accounted_events_to_pass": [
-                result["accounted_events"] for result in successful
-            ],
+            "accounted_events_to_pass": [result["accounted_events"] for result in successful],
             "unknowns": sum(result["status"] == "UNKNOWN" for result in group),
         }
 
