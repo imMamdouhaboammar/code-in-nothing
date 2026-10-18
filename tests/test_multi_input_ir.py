@@ -106,9 +106,7 @@ def test_eight_argument_search_has_bounded_probe_work():
     base = validate_genome(new_genome(8))["genome"]["base"]
     expressions = [
         proposal.expression
-        for proposal in candidate_stream(
-            {"op": "Arg", "index": 0}, base, max_proposals=12
-        )
+        for proposal in candidate_stream({"op": "Arg", "index": 0}, base, max_proposals=12)
     ]
     assert {"op": "Arg", "index": 7} in expressions
     assert len(expressions) == 12
