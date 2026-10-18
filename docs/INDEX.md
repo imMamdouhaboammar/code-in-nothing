@@ -7,6 +7,7 @@
 This is the starting point for developers, reviewers and researchers. **The executable source and existing tests are the authority on current behavior.** The v0.4 design governs proposed work only after an implementation phase explicitly adopts its contracts.
 
 | Read | Purpose | Authority |
+| [Applications](APPLICATIONS.md) | Verified capabilities at each milestone and the production applications they unlock | Cumulative; append-only; grounded in CI-passing runtime |
 | --- | --- | --- |
 | [Verified mathematical evolution v0.6](specs/2026-10-18-cin-verified-mathematical-evolution-v0.6.md) | Integrated architecture, measured-cost contract, maturity ledger, falsifiable M1–M6 phase gates | Proposed v0.6 research program, not runtime release |
 | [Integrated specification](specs/2026-10-18-cin-integrated-system-spec-v0.4.md) | Goals, invariants, interfaces, transition model, proposed acceptance | Normative future design |
