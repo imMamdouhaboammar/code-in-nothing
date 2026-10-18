@@ -7,6 +7,7 @@ import pytest
 
 from cin.contracts import ContractError, load_genome, validate_genome
 from cin.ir import IRViolation, Limits, check_tree, render_python, run_ir, run_ir_args
+from cin.search import candidate_stream
 
 ROOT = Path(__file__).resolve().parents[1]
 LEGACY = load_genome(ROOT / "examples/seed-genome.v0.1.yaml")
@@ -88,3 +89,26 @@ def test_existing_call_signature_and_code_export_remain_unchanged():
     base = LEGACY["genome"]["base"]
     assert run_ir({"op": "Arg", "index": 0}, 3, 4) == 3
     assert "def solve(x: int, y: int) -> int:" in render_python({"op": "Arg", "index": 0}, base)
+
+
+def test_multi_input_search_is_task_blind_deterministic_and_uses_third_argument():
+    base = validate_genome(new_genome())["genome"]["base"]
+    parent = {"op": "Arg", "index": 0}
+    first = list(candidate_stream(parent, base, seed=0, max_proposals=80))
+    second = list(candidate_stream(parent, base, seed=0, max_proposals=80))
+    assert [item.expression for item in first] == [item.expression for item in second]
+    assert {"op": "Arg", "index": 2} in [item.expression for item in first]
+    assert all(check_tree(item.expression, base) == "Int" for item in first)
+    assert len(first) == 80
+
+
+def test_eight_argument_search_has_bounded_probe_work():
+    base = validate_genome(new_genome(8))["genome"]["base"]
+    expressions = [
+        proposal.expression
+        for proposal in candidate_stream(
+            {"op": "Arg", "index": 0}, base, max_proposals=12
+        )
+    ]
+    assert {"op": "Arg", "index": 7} in expressions
+    assert len(expressions) == 12
