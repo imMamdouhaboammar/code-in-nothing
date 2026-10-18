@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/cin/world.v0.2.schema.json",
+  "title": "CIN Formal World Spec v0.2 (recursive subtraction terms)",
+  "$defs": {
+    "term": {
+      "oneOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "enum": [
+            "x",
+            "y",
+            "result"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "sub": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/term"
+                },
+                {
+                  "$ref": "#/$defs/term"
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "required": [
+            "sub"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "formula": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "and": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/formula"
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "and"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "or": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/formula"
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "or"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "gte": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/term"
+                },
+                {
+                  "$ref": "#/$defs/term"
+                }
+              ],
+              "minItems": 2,
+              "maxItems": 2,
+              "items": false
+            }
+          },
+          "required": [
+            "gte"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "lte": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/term"
+                },
+                {
+                  "$ref": "#/$defs/term"
+                }
+              ],
+              "minItems": 2,
+              "maxItems": 2,
+              "items": false
+            }
+          },
+          "required": [
+            "lte"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "eq": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/term"
+                },
+                {
+                  "$ref": "#/$defs/term"
+                }
+              ],
+              "minItems": 2,
+              "maxItems": 2,
+              "items": false
+            }
+          },
+          "required": [
+            "eq"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "api_version": {
+      "const": "cin.world/v0.2"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "family": {
+      "type": "string",
+      "enum": [
+        "arithmetic",
+        "comparisons",
+        "composition"
+      ]
+    },
+    "input_types": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "const": "Int"
+        },
+        {
+          "const": "Int"
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "return_type": {
+      "const": "Int"
+    },
+    "input_domain": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "integer"
+            },
+            "max": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "min",
+            "max"
+          ],
+          "additionalProperties": false
+        },
+        "y": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "integer"
+            },
+            "max": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "min",
+            "max"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "additionalProperties": false
+    },
+    "precondition": {
+      "$ref": "#/$defs/formula"
+    },
+    "postcondition": {
+      "$ref": "#/$defs/formula"
+    },
+    "validation": {
+      "type": "object",
+      "properties": {
+        "require_typed_spec": {
+          "const": true
+        },
+        "require_admissible_grammar_witness": {
+          "const": true
+        },
+        "witness_visibility": {
+          "const": "verifier_only"
+        },
+        "unknown_is_not_pass": {
+          "const": true
+        }
+      },
+      "required": [
+        "require_typed_spec",
+        "require_admissible_grammar_witness",
+        "witness_visibility",
+        "unknown_is_not_pass"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "api_version",
+    "id",
+    "family",
+    "input_types",
+    "return_type",
+    "input_domain",
+    "precondition",
+    "postcondition",
+    "validation"
+  ],
+  "additionalProperties": false
+}

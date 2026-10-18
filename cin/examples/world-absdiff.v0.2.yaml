@@ -1,0 +1,28 @@
+# Piecewise affine relation; versioned term subtraction is verifier-only.
+api_version: cin.world/v0.2
+id: cin.world.math.absdiff.001
+family: comparisons
+input_types: [Int, Int]
+return_type: Int
+input_domain:
+  x: { min: -4, max: 4 }
+  y: { min: -4, max: 4 }
+precondition:
+  and:
+    - { gte: [x, -4] }
+    - { lte: [x, 4] }
+    - { gte: [y, -4] }
+    - { lte: [y, 4] }
+postcondition:
+  or:
+    - and:
+        - { gte: [x, y] }
+        - { eq: [result, { sub: [x, y] }] }
+    - and:
+        - { lte: [x, y] }
+        - { eq: [result, { sub: [y, x] }] }
+validation:
+  require_typed_spec: true
+  require_admissible_grammar_witness: true
+  witness_visibility: verifier_only
+  unknown_is_not_pass: true

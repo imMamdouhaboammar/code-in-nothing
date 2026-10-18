@@ -38,6 +38,10 @@ jobs:
         run: |
           python -m pytest -q
 
+      - name: Reproduce tier-1 mathematical synthesis evidence
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        run: python experiments/run_m1.py
+
       - name: Run demonstration experiment (canonical baseline)
         run: |
           python -m cin demo --seed 0 --max-evals 250 --output runs/ci-baseline
