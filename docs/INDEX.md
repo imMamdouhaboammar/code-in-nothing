@@ -2,13 +2,21 @@
 
 **Current date:** 2026-10-18  
 **Runtime:** CIN-Lab v0.1 (working pilot; 35 baseline tests at documentation-planning start).  
-**Integrated design:** v0.4 (proposed architecture, not an implemented runtime upgrade).
+**Integrated design:** v0.4 baseline; **v0.5 mathematical evolution** adds proposed research architecture and a GitHub agent mission, not new runtime behavior.
 
 This is the starting point for developers, reviewers and researchers. **The executable source and existing tests are the authority on current behavior.** The v0.4 design governs proposed work only after an implementation phase explicitly adopts its contracts.
 
 | Read | Purpose | Authority |
 | --- | --- | --- |
 | [Integrated specification](specs/2026-10-18-cin-integrated-system-spec-v0.4.md) | Goals, invariants, interfaces, transition model, proposed acceptance | Normative future design |
+| [Mathematical evolution v0.5](specs/2026-10-18-cin-mathematical-evolution-v0.5.md) | Integrated deeper mathematical synthesis/verification design | Proposed, not implemented |
+| [Math synthesis research](research/MATH-SYNTHESIS-RESEARCH.md) | Primary evidence, version traps and research hypotheses | Research interpretation |
+| [Math benchmark protocol](research/MATH-BENCHMARK-PROTOCOL.md) | Formal task ladder, leakage/baselines, proof scope | Preregistration template |
+| [Math gates](roadmap/MATH-PHASES.md) | M0-M8 dependency gates and honest deliverables | Proposed roadmap |
+| [Math development plan](plans/2026-10-18-cin-deep-math-phases.md) | Detailed reviewable PR slices | Implementation plan |
+| [Deep math coding-agent prompt](prompts/DEEP-MATH-CODING-AGENT.md) | Full reusable GitHub continuation prompt | Agent instructions; no execution implied |
+| [ADR 0004](adr/0004-formal-math-complexity-and-proof-separation.md) | Formal math / verifier separation trade-off | Proposed architectural decision |
+| [Phase P1 research & architecture](research/2026-10-18-cin-p1-research-and-architecture.md) | Discovery, IR search relevance, and 3-vector architecture evaluation | Research & architectural evaluation |
 | [System architecture](architecture/SYSTEM.md) | Components, ownership, data flow, state and deployment | Architecture proposal plus runtime map |
 | [Evolution protocol](architecture/EVOLUTION.md) | Individual growth, world evolution, reproduction, maturity, stop | Protocol proposal |
 | [Contracts](architecture/CONTRACTS.md) | Existing v0.1 functions and future APIs, status semantics, compatibility | Versioned interface contract |

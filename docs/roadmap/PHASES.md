@@ -4,6 +4,8 @@
 **Source of requirements:** [Integrated specification v0.4](../specs/2026-10-18-cin-integrated-system-spec-v0.4.md).  
 **Implementation checklist:** [Next-phase plan](../plans/2026-10-18-cin-next-phases.md).
 
+**Deep mathematical synthesis extension:** [v0.5 math roadmap](MATH-PHASES.md) and [integrated math spec](../specs/2026-10-18-cin-mathematical-evolution-v0.5.md) define research targets only, not additional implemented milestones.
+
 ## Dependency map
 
 ```mermaid

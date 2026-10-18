@@ -9,6 +9,7 @@ Code in Nothing is a **model-free research prototype**, not a demonstrated gener
 - [`CONTEXT.md`](CONTEXT.md): domain vocabulary; use these meanings in code and documents.
 - [`docs/specs/2026-10-18-cin-integrated-system-spec-v0.4.md`](docs/specs/2026-10-18-cin-integrated-system-spec-v0.4.md): future-state requirements, **not** a list of implemented features.
 - [`docs/roadmap/PHASES.md`](docs/roadmap/PHASES.md): feature gates and implementation order.
+- [`docs/specs/2026-10-18-cin-mathematical-evolution-v0.5.md`](docs/specs/2026-10-18-cin-mathematical-evolution-v0.5.md): proposed mathematical synthesis extension; use alongside [research](docs/research/MATH-SYNTHESIS-RESEARCH.md), [benchmark](docs/research/MATH-BENCHMARK-PROTOCOL.md), and [deep math prompt](docs/prompts/DEEP-MATH-CODING-AGENT.md).
 
 ## Boundaries
 

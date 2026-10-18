@@ -45,3 +45,14 @@ No source change is proposed solely to silence these findings. Each risk is mapp
 ## Exit review
 
 For this phase, the deliverable is **integrated and internally navigable documentation**, not an implemented v0.4 engine. Run tests and link checks after edits, inspect ZIP structure, and report findings honestly. Proceed with P1 only as a future implementation task after review of design and evidence.
+
+
+## 2026-10-18 extension: GitHub main read-only check
+
+Evidence: the live GitHub default-branch tree contains `.github/workflows/ci.yml`, `codeql.yml`, `uv.lock`, tests and the v0.4 documents. The local restored sandbox initially contained only partially materialized docs; complete source/test files were recovered without overwriting existing docs from the archived v0.4 project. Local `python -m pytest -q` passed 35 tests before v0.5 edits. GitHub main must remain authoritative when an agent starts coding; no GitHub writes occurred as part of this documentation extension.
+
+**Critical factual limitation:** `cin/ir.py` accepts only x/y `Arg(0/1)`; `cin/worlds.py` postconditions only compare simple terms, so absolute difference and median3 require versioned grammar/formula changes. The current `cin/search.py` conditional branch synthesis is shallow. This is the priority constraint of M1/M2.
+
+**Misleading upstream README diagram:** The GitHub main README's architecture graphic mentions `base, heritable_program, exploration_policy, world_mutation, stop_station` as if they were five genes, while the actual `cin/contracts.py` schema and this project's contract require `base, driver, directive, maturity_point, stop_station`. Fix on the next doc PR, not by changing the gene count or silently rewriting history.
+
+**Review risks:** representation-limited impossible tasks; oracle-generated code falsely credited to organisms; finite search labeled formal universal proof; search-cost cherry-picking; incomplete static/runtime budgets; benchmarks changed after seeing results; over-engineered new abstractions. v0.5 addresses these as experimental and implementation gates, without claiming execution.

@@ -7,6 +7,8 @@
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![Model-Free: Guaranteed](https://img.shields.io/badge/LLM%20Calls-0%20(Model--Free)-brightgreen)
 
+> **Mathematical evolution research extension (v0.5, proposed):** [Integrated math specification](docs/specs/2026-10-18-cin-mathematical-evolution-v0.5.md) · [research](docs/research/MATH-SYNTHESIS-RESEARCH.md) · [progressive math benchmark](docs/research/MATH-BENCHMARK-PROTOCOL.md) · [phase gates](docs/roadmap/MATH-PHASES.md) · [coding-agent continuation prompt](docs/prompts/DEEP-MATH-CODING-AGENT.md). These are **design artifacts, not newly shipped mathematical programs**.
+
 > **Design expansion (2026-10-18):** The [integrated v0.4 system specification](docs/specs/2026-10-18-cin-integrated-system-spec-v0.4.md) and [documentation index](docs/INDEX.md) define architecture, formal contracts, research, and future phases. **No v0.4 runtime features are claimed here.** Start with [P1 milestones](docs/roadmap/PHASES.md) for the next engineering work. See the [research evidence](docs/research/LITERATURE.md) and [evaluation plan](docs/research/EXPERIMENTS.md).
 
 A runnable **model-free evolutionary program-synthesis experiment**. This is the first practical slice of the larger [Code in Nothing v0.3 design](docs/specs/2026-10-18-cin-technical-design.md), **not** a general autonomous programmer or evidence of open-ended intelligence.
@@ -22,7 +24,7 @@ CIN-Lab starts with a five-gene YAML seed whose starting program returns its fir
 ```mermaid
 flowchart TD
     subgraph Genesis ["1. Seed Genesis & Specification"]
-        Seed["seed-genome.v0.1.yaml<br/>(5 exact genes: base, heritable_program,<br/>exploration_policy, world_mutation, stop_station)"]
+        Seed["seed-genome.v0.1.yaml<br/>(5 exact genes: base, driver,<br/>directive, maturity_point, stop_station)"]
         World0["world-max2.v0.1.yaml<br/>(Declared domain, pre & postconditions)"]
     end
 
