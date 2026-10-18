@@ -7,11 +7,32 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from itertools import product
 
-from .ir import IRViolation, Limits, canonical_hash, check_tree, run_ir
+from .ir import IRViolation, Limits, canonical_hash, check_tree, run_ir_args
 
 # Search-only probes are fixed independently of all formal worlds and targets.
 # Equivalence here is a heuristic for pruning, never a correctness certificate.
 _PROBES = tuple(product(range(-3, 4), repeat=2))
+
+
+def _probe_inputs(arity: int) -> tuple[tuple[int, ...], ...]:
+    """Fixed task-independent observations. These are not equivalence proofs."""
+    if arity == 2:
+        return _PROBES
+    # Cover each axis, plus bounded mixed tuples; never form a 7**arity grid.
+    probes = [tuple([value] * arity) for value in range(-3, 4)]
+    for index in range(arity):
+        for value in range(-3, 4):
+            point = [0] * arity
+            point[index] = value
+            probes.append(tuple(point))
+    for sample in range(49):
+        probes.append(
+            tuple(
+                ((sample // (7 ** (index % 2)) + sample * (index + 1) + 2 * index) % 7) - 3
+                for index in range(arity)
+            )
+        )
+    return tuple(dict.fromkeys(probes))
 
 
 @dataclass(frozen=True)
@@ -67,6 +88,8 @@ def candidate_stream(
     if type(seed) is not int or seed < 0:
         raise ValueError("seed must be a nonnegative integer")
     check_tree(parent, base)
+    arity = len(base.get("input_types", ("Int", "Int")))
+    probes = _probe_inputs(arity)
     parent_hash = canonical_hash(parent)
     limits = Limits(
         max_depth=base["max_ast_depth"],
@@ -108,7 +131,9 @@ def candidate_stream(
     # Parent is available as a reusable expression at its honest syntax cost.
     size, depth = _size_depth(parent)
     try:
-        observations = tuple(run_ir(parent, x, y, limits) for x, y in _PROBES)
+        observations = tuple(
+            run_ir_args(parent, point, limits, expected_arity=arity) for point in probes
+        )
     except IRViolation:
         observations = None
     if observations is not None and size <= max_nodes:
@@ -116,12 +141,12 @@ def candidate_stream(
 
     leaves = []
     if "Arg" in allowed:
-        leaves.extend({"op": "Arg", "index": i} for i in range(2))
+        leaves.extend({"op": "Arg", "index": i} for i in range(arity))
     if "ConstInt" in allowed:
         leaves.extend({"op": "ConstInt", "value": c} for c in base["allowed_constants"])
     for leaf in leaves:
         observations = tuple(
-            (x, y)[leaf["index"]] if leaf["op"] == "Arg" else leaf["value"] for x, y in _PROBES
+            point[leaf["index"]] if leaf["op"] == "Arg" else leaf["value"] for point in probes
         )
         if add("Int", 1, leaf, observations, 1):
             produced += 1
