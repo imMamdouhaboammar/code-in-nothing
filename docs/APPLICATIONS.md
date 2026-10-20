@@ -134,60 +134,52 @@ The next engineering gate is `P1-01` (immutable cohort manifest + normalized rep
 
 ---
 
-## 2026-10-19 — Milestone P1 Slices + Guided Synthesis & Hardware H0 Baseline
+## 2026-10-19 · Milestone P1 Slices + Guided Synthesis & Hardware H0 Baseline
 
-**Runtime:** `cin-lab/0.1` · `934cd06` · Python 3.11–3.13  
-**CI:** passing (116 tests, 0 failures) · `python -m cin validate` → `VALID`  
+**Runtime:** `cin-lab/0.1` · `934cd06` · Python 3.11–3.13
+**Verification sources:** tests listed below; historical H0 measurements in [`experiments/hardware/RESULTS.md`](../experiments/hardware/RESULTS.md).
 **Language model calls:** 0
 
 ### Verified Capabilities
 
 | Capability | How It Works | Verified By |
 | :--- | :--- | :--- |
-| **Finite-Epoch Scheduler & Governor Accounting** | Multi-epoch execution with single-use compute reservations debiting actual operations; global candidate budget preserved without silent resets; plateau termination. | `tests/test_scheduler.py`, `tests/test_governor.py` (ADR 0008) |
-| **Evidence-Gated Guided Synthesis (B0/B1/B2 Arms)** | Evaluates candidates against an immutable, frozen public training panel to guide search frontiers without leaking private verifier feedback or compromising formal admission. | `cin/training.py`, `cin/guided_experiment.py`, `tests/test_training.py`, `tests/test_guided_experiment.py` |
-| **Non-Invasive H0 CPU Profiler & Amdahl Ceiling** | Measures signature-search CPU wall-time across frozen manifests, calculates optimistic hardware acceleration ceilings, and enforces data-driven GO/NO-GO gates. | `experiments/hardware/profile_signature_search.py`, `tests/test_hardware_profile.py` (ADR 0009) |
-| **Extended Math Synthesis (M1 Suite)** | Verifies formal synthesis of integer arithmetic/comparisons including `min2` and `absdiff` under bounded exhaustive specifications without oracle guidance. | `experiments/run_m1.py`, `tests/test_math_search.py` |
-| **Multi-Argument Task-Blind Probing** | Expands typed candidate enumeration up to 8 arguments (`cin.genome/v0.2`) with bounded probe work while keeping legacy contracts frozen. | `tests/test_multi_input_ir.py` |
+| **Finite-Epoch Scheduler & Governor Accounting** | Single-process epochs with single-use reservations and settlement of reported logical work; candidate limits persist across epochs within one run; plateau termination. | `tests/test_scheduler.py`, `tests/test_governor.py` (ADR 0008) |
+| **Evidence-Gated Guided Synthesis (B0/B1/B2 Arms)** | B0 uses task-blind search; B1 measures public-panel fitness without steering search; B2 uses public fitness to select parents. Independent finite-world verification decides success; no private verdict or witness enters parent selection. | `cin/training.py`, `cin/guided_experiment.py`, `tests/test_training.py`, `tests/test_guided_experiment.py` |
+| **Non-Invasive H0 CPU Profiler & Amdahl Ceiling** | Measures search-stage wall time and whole-workload process CPU time across frozen manifests; calculates an optimistic bound for eliminating the entire search stage. Signature-eligible cost remains unresolved; the harness does not enforce GO/NO-GO gates. | `experiments/hardware/profile_signature_search.py`, `tests/test_hardware_profile.py` (proposed ADR 0009) |
+| **Extended Math Synthesis (M1 Suite)** | Searches for `min2` and `absdiff` using public-example screening, then independently checks survivors against complete declared finite domains. World admission and organism inheritance are not run by this harness. | `experiments/run_m1.py`, `tests/test_math_search.py` |
+| **Multi-Argument Task-Blind Probing** | Typed candidate enumeration supports 1–8 integer arguments (`cin.genome/v0.2`) with bounded probe work while preserving legacy contracts. This does not extend formal world verification beyond its two-input scope. | `tests/test_multi_input_ir.py` |
 
-### Applications Unlocked at This Milestone
+### Research Applications Supported at This Milestone
 
-Building on previous milestones, the new runtime guarantees unlock additional production and research patterns:
+#### 1. Public-Panel Search with Independent Finite Verification
 
----
+- An immutable public panel supplies training feedback for B1 measurement or B2 search guidance.
+- `run_trial` verifies each evaluated candidate independently against the declared two-input finite world; public-panel success alone cannot produce the trial's `PASS`.
+- Generator and verifier responsibilities are separated in code within one trusted Python process. There is no physical or OS isolation boundary.
+- The trial reports `admission: not_run` and `inherited_capability: false`; it does not admit worlds, promote organism capabilities or produce deployment-ready controllers.
 
-#### 1. Dual-Gated Controller Synthesis (Public Simulation + Private Formal Proof)
-
-**The problem it solves:** Training control logic directly against a formal verifier causes overfitting and leaks the specification. Conversely, training solely against simulation traces yields unverified controllers prone to catastrophic out-of-distribution failures.
-
-**What CIN provides:**
-- Developers supply a public set of training traces (panel) to guide candidate exploration (Arm B2).
-- The verifier remains physically isolated and executes an independent, exhaustive finite-domain proof before any candidate is admitted or promoted.
-- Candidates that score 100% on the public training panel are never admitted unless they also pass the private formal world verifier.
-
-**Supported scope (today):** Discrete control logic, threshold selectors, and saturating math expressible in CIN-IR over 1–8 integer parameters.
+**Supported scope:** A research harness for integer arithmetic, comparisons and conditional selection under existing two-input world contracts. Wider-arity control synthesis requires a versioned multi-input verifier and application-specific evidence.
 
 ---
 
-#### 2. Resource-Fenced Multi-Tenant Algorithmic Synthesis
+#### 2. Budgeted Single-Process Synthesis Experiments
 
-**The problem it solves:** Automated code generation engines without strict accounting can exhaust server CPU, deadlock under unbounded search, or report premature success when budgets run out.
+- `cin.governor.Governor` reserves declared resource vectors, rejects reused or foreign grants, and settles reported logical costs.
+- `FiniteScheduler` preserves candidate ceilings across epochs in one run and reports explicit terminal reasons, including plateau and budget exhaustion.
+- Accounting covers the documented proposal, probe, admission and verifier dimensions. These counters are not calibrated CPU instructions or OS-enforced memory/time quotas.
 
-**What CIN provides:**
-- `cin.governor.Governor` enforces single-use reservations that debit only actual executed operations.
-- Global budgets remain immutable across search epochs, preventing budget reset attacks or unbounded search loops.
-- Plateau detection halts wasted computation after configured grace intervals, returning verified status or graceful `UNKNOWN` without fabricating success.
+**Boundary:** Multiple actor ledgers are supported, but the scheduler runs one organism. Concurrent tenant isolation, crash-safe accounting and durable resume are not implemented; a new process does not restore prior budgets automatically.
 
 ---
 
-#### 3. Hardware Offload Feasibility & RTL Pre-Flight Auditing
+#### 3. CPU Profiling Before a Hardware Investment Decision
 
-**The problem it solves:** Teams often commit to expensive FPGA or ASIC development for algorithm acceleration before measuring whether memory bandwidth, dispatch overhead, and sequential code will throttle practical speedup.
+- H0 reports search, screening and verification wall times and total process CPU time for frozen workloads.
+- Its Amdahl ceiling assumes the entire search stage disappears, including work that would remain on the host. It is not measured accelerator speedup.
+- Signature-only eligible cost, transfer overhead and hardware execution remain unresolved. The measurements inform a later GO/NO-GO/INCONCLUSIVE review; the harness neither makes that decision nor rejects hardware projects.
 
-**What CIN provides:**
-- The H0 profiling harness empirically benchmarks signature evaluation wall-time against interpreter overhead.
-- Calculates Amdahl's Law upper-bound speedup curves on real CPU workloads before a single line of HDL is written.
-- Rejects hardware projects early if the measured signature stage does not dominate execution time.
+**Evidence:** [`experiments/hardware/RESULTS.md`](../experiments/hardware/RESULTS.md) retains exploratory, unsuccessful and `UNKNOWN` runs. H0 remains **PARTIAL / INCONCLUSIVE**.
 
 ---
 
@@ -195,15 +187,19 @@ Building on previous milestones, the new runtime guarantees unlock additional pr
 
 | Claim | Status |
 | :--- | :--- |
-| Formally verified programs over declared bounded integer domains | **Implemented** |
-| Finite-epoch scheduling with single-use reservations (P1-02) | **Implemented** |
-| Opt-in public training guidance with independent verification | **Implemented** |
-| H0 CPU profiling and Amdahl feasibility analysis | **Implemented** |
-| Measured FPGA / hardware speedup | **`NOT_MEASURED`** / Exploratory |
+| Independent exhaustive verification over declared two-input finite worlds | **Implemented**; finite scope only |
+| Finite-epoch scheduling with single-use reservations (P1-02) | **Implemented**; single process |
+| Opt-in public training guidance with independent verification | **Implemented**; experimental trials, no admission or inheritance |
+| H0 timing harness and optimistic whole-search Amdahl ceiling | **Implemented**; H0 gate **PARTIAL / INCONCLUSIVE** |
+| Measured FPGA / hardware speedup | **`NOT_MEASURED`** |
+| Multi-input formal worlds, controller deployment, tenant/OS isolation | **Not implemented** |
+| Durable resume, crash-safe budgets and atomic births (P1-03) | **Not implemented** |
 | Multi-task semantic world co-evolution (P2) | **Designed, not implemented** |
 | Cross-task hereditary abstraction reuse (P3) | **Designed, not implemented** |
 | Scientific self-improvement | **`NOT_ESTABLISHED`** |
 | General-purpose code generation or software engineering | **Out of scope; not a goal** |
+
+**Historical scope clarification:** The preceding entry is retained as a historical record. Its 1–8 input statements describe IR/search support, not multi-input formal worlds. Pricing, safety, compliance and patching are application hypotheses requiring their own contracts and validation. In-process interpreter restrictions and unanchored hash chains do not establish host isolation, authenticated provenance, durable replay or production readiness. Current scope follows `AGENTS.md`, `CONTEXT.md` and the architecture/security contracts.
 
 ---
 
