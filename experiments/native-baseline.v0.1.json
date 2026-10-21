@@ -1,0 +1,18 @@
+{
+  "protocol": "cin.native-baseline.manifest/v0.1",
+  "source_commit": "934cd06bd36d7e79121fdcd36d4217fb15064a35",
+  "seeds": [0, 1, 2],
+  "repetitions": 5,
+  "guided_arms": ["B0", "B1", "B2"],
+  "guided_proposals": 250,
+  "composition_iterations": 100,
+  "native_go": "REQUIRES_END_TO_END_PARITY_AND_2X",
+  "workloads": [
+    {"id": "max2", "kind": "world", "world": "world-max2.v0.1.yaml", "arity": 2, "seed": 0, "max_proposals": 250},
+    {"id": "min2", "kind": "world", "world": "world-min2.v0.1.yaml", "arity": 2, "seed": 0, "max_proposals": 250},
+    {"id": "absdiff", "kind": "world", "world": "world-absdiff.v0.2.yaml", "arity": 2, "seed": 0, "max_proposals": 1200},
+    {"id": "exhaustion", "kind": "world", "world": "world-min2.v0.1.yaml", "arity": 2, "seed": 0, "max_proposals": 1},
+    {"id": "search3", "kind": "search_only", "arity": 3, "seed": 0, "max_proposals": 80},
+    {"id": "search3-large", "kind": "search_only", "arity": 3, "seed": 0, "max_proposals": 3000}
+  ]
+}
