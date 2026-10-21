@@ -48,3 +48,26 @@ uv run --frozen --extra dev ruff format --check .
 ```
 
 The output path must be new and its parent must exist. Raw output includes the frozen manifest, Git execution SHA and dirty status, SHA-256 source/lock/workflow provenance, platform, interpreter, logical CPU count, complete measurement denominator and unfavorable/UNKNOWN runs.
+
+## Exploratory run: 2026-10-20
+
+Raw evidence: [`r0-20261020.json.gz`](../../experiments/native/r0-20261020.json.gz), standard gzip containing the complete JSON report. Decompressed SHA-256: `164200ea717bf39fb8e30fa1cb53ac7ed6c052f98e185f87ce7d6915e4bb0000`.
+
+The run used Python 3.12.14 on Linux x86_64, nine visible logical CPUs and an uncontrolled shared host. Other verification work overlapped part of the run. The recorded processor string is only `x86_64`; the CPU model is unknown. These are exploratory observations, not controlled performance estimates.
+
+| Measurement | Recorded denominator / outcome |
+| --- | --- |
+| Uninstrumented H0 samples | 90: six workloads, three seeds, five repetitions |
+| Guided samples | 135: three worlds, three seeds, three arms, five repetitions |
+| Guided finite-world verdicts | 90 PASS, 45 UNKNOWN; all retained |
+| Paired composition samples | 20 pairs across four operations, with both timing arms retained |
+| Native execution | NOT MEASURED |
+| Decision | ITERATE_R0_NO_NATIVE_GO |
+
+All repeated guided cells retained identical normalized logical outcomes. H0 retained its trace/counter checks. Search-only workloads remain SEARCH_ONLY, not verified multi-input worlds. PASS denotes only the declared finite-world scope and is not world admission or inherited organism capability.
+
+List-to-tuple composition was faster in this isolated run, with median paired generator/list wall-time ratios of 1.50 for Add, 1.60 for Sub, 1.57 for LessThan and 1.65 for Equal. These ratios exclude integrated search, allocation attribution, verifier, archive and FFI costs; they do not establish an end-to-end gain or justify Rust.
+
+The raw report records the clean local preregistration commit `dead7ccd7df0a327a014e74a7b4f75bbc0db0cba`. Publication through GitHub's API created commit `c29802d8783d927cc59e30392dc414bf7891ee3d` with the identical Git tree `0c25cf460c0df98ff079b70b4e529e74d024d24a`; commit metadata differs. The local protocol was committed before measurement; remote publication occurred afterward. Raw provenance was preserved without rewriting the execution SHA. Every recorded source, lock and workflow hash was checked against the published source tree.
+
+Validation after the run: 128 tests passed (116 existing plus 12 new); contract validation, Ruff lint/format and diff whitespace checks passed. No existing tests, core runtime, dependency locks or historical evidence changed. The remaining R0 gates listed above are open; Issue #12 is not complete and R1 remains blocked.
