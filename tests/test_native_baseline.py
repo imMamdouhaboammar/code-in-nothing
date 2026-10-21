@@ -1,9 +1,11 @@
 import copy
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
 
+from experiments import native_baseline
 from experiments.native_baseline import (
     DEFAULT_MANIFEST,
     compose_batch,
@@ -178,3 +180,101 @@ def test_smoke_report_records_limits_and_no_native_decision():
     assert len(report["guided_baselines"]) == 3
     assert report["provenance"]["source_sha256"]["uv.lock"]
     json.dumps(report, allow_nan=False)
+
+
+def test_provenance_prefers_host_cpu_model_over_architecture_label(monkeypatch):
+    original_exists = Path.exists
+    original_read_text = Path.read_text
+
+    def exists(path):
+        return True if path == Path("/proc/cpuinfo") else original_exists(path)
+
+    def read_text(path, *args, **kwargs):
+        if path == Path("/proc/cpuinfo"):
+            return "processor\t: 0\nmodel name\t: Example CPU 123\n"
+        return original_read_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "exists", exists)
+    monkeypatch.setattr(Path, "read_text", read_text)
+    monkeypatch.setattr(native_baseline.platform, "processor", lambda: "x86_64")
+
+    assert native_baseline._provenance()["processor"] == "Example CPU 123"
+
+
+def test_provenance_falls_back_when_cpuinfo_cannot_be_read(monkeypatch):
+    original_exists = Path.exists
+    original_read_text = Path.read_text
+
+    def exists(path):
+        return True if path == Path("/proc/cpuinfo") else original_exists(path)
+
+    def read_text(path, *args, **kwargs):
+        if path == Path("/proc/cpuinfo"):
+            raise PermissionError("cpuinfo is not readable")
+        return original_read_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "exists", exists)
+    monkeypatch.setattr(Path, "read_text", read_text)
+    monkeypatch.setattr(native_baseline.platform, "processor", lambda: "fallback-architecture")
+
+    assert native_baseline._provenance()["processor"] == "fallback-architecture"
+
+
+def test_provenance_keeps_unknown_cpu_sentinel_when_both_sources_absent(monkeypatch):
+    original_exists = Path.exists
+
+    def exists(path):
+        return False if path == Path("/proc/cpuinfo") else original_exists(path)
+
+    monkeypatch.setattr(Path, "exists", exists)
+    monkeypatch.setattr(native_baseline.platform, "processor", lambda: "")
+
+    assert native_baseline._provenance()["processor"] == "UNKNOWN"
+
+
+def test_baseline_captures_provenance_before_measured_work(monkeypatch):
+    protocol = load_protocol(DEFAULT_MANIFEST)
+    protocol.update(seeds=[0], repetitions=1, guided_proposals=1, composition_iterations=1)
+    protocol["workloads"] = [protocol["workloads"][1]]
+    protocol["workloads"][0]["max_proposals"] = 1
+    events = []
+    original_load_genome = native_baseline.load_genome
+
+    def load_genome(path):
+        events.append("work")
+        return original_load_genome(path)
+
+    def provenance():
+        events.append("provenance")
+        return {"captured": "before"}
+
+    monkeypatch.setattr(native_baseline, "_provenance", provenance)
+    monkeypatch.setattr(native_baseline, "load_genome", load_genome)
+
+    report = native_baseline.run_baseline(protocol)
+    assert events[0] == "provenance"
+    assert report["provenance"] == {"captured": "before"}
+
+
+def test_cli_checks_output_parent_before_measuring(tmp_path, monkeypatch, capsys):
+    def unexpected_baseline(protocol):
+        pytest.fail("the baseline must not run for an invalid output path")
+
+    monkeypatch.setattr(native_baseline, "run_baseline", unexpected_baseline)
+    with pytest.raises(SystemExit) as exit_info:
+        native_baseline.main(["--output", str(tmp_path / "missing" / "r0.json")])
+
+    assert exit_info.value.code == 2
+    assert "existing directory" in capsys.readouterr().err
+
+
+def test_cli_handles_git_failure_as_invalid_baseline(tmp_path, monkeypatch, capsys):
+    def git_failure(protocol):
+        raise subprocess.CalledProcessError(128, ["git", "rev-parse", "HEAD"])
+
+    monkeypatch.setattr(native_baseline, "run_baseline", git_failure)
+    with pytest.raises(SystemExit) as exit_info:
+        native_baseline.main(["--output", str(tmp_path / "r0.json")])
+
+    assert exit_info.value.code == 2
+    assert "INVALID R0 baseline" in capsys.readouterr().err

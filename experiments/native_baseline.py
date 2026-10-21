@@ -204,16 +204,18 @@ def _provenance() -> dict:
         ROOT / "uv.lock",
         ROOT / ".github/workflows/ci.yml",
     ]
-    cpu_model = platform.processor()
-    if not cpu_model and Path("/proc/cpuinfo").exists():
+    cpu_model = ""
+    cpuinfo = Path("/proc/cpuinfo")
+    if cpuinfo.exists():
+        try:
+            lines = cpuinfo.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            lines = ()
         cpu_model = next(
-            (
-                line.split(":", 1)[1].strip()
-                for line in Path("/proc/cpuinfo").read_text().splitlines()
-                if line.startswith("model name")
-            ),
-            "UNKNOWN",
+            (line.split(":", 1)[1].strip() for line in lines if line.startswith("model name")),
+            "",
         )
+    cpu_model = cpu_model or platform.processor()
     return {
         "execution_commit": _git("rev-parse", "HEAD"),
         "working_tree_status": _git("status", "--porcelain"),
@@ -295,6 +297,7 @@ def _guided_summary(records: list[dict]) -> list[dict]:
 
 
 def run_baseline(protocol: dict) -> dict:
+    provenance = _provenance()
     base = load_genome(ROOT / GENOME)["genome"]["base"]
     h0 = [
         measure(
@@ -351,7 +354,7 @@ def run_baseline(protocol: dict) -> dict:
         "protocol": "cin.native-baseline.report/v0.1",
         "manifest": deepcopy(protocol),
         "manifest_sha256": fingerprint(protocol),
-        "provenance": _provenance(),
+        "provenance": provenance,
         "h0_baselines": h0,
         "guided_baselines": guided,
         "composition_control": composition,
@@ -378,13 +381,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
-        if args.output.exists():
-            raise ValueError("refusing to overwrite experiment evidence")
+        if args.output.exists() or not args.output.parent.is_dir():
+            raise ValueError("output must be a new path in an existing directory")
         report = run_baseline(load_protocol(args.manifest))
         with args.output.open("x", encoding="utf-8") as out:
             json.dump(report, out, indent=2, sort_keys=True, allow_nan=False)
             out.write("\n")
-    except (ValueError, OSError, RuntimeError) as exc:
+    except (ValueError, OSError, RuntimeError, subprocess.SubprocessError) as exc:
         parser.exit(2, f"INVALID R0 baseline: {exc}\n")
     return 0
 
