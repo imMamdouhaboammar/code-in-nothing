@@ -1,0 +1,17 @@
+{
+  "protocol": "cin.native-rss-control.manifest/v0.3",
+  "source_commit": "dfd0b7b44d08358808b02e9a87b218f4b6c24311",
+  "seeds": [0, 1, 2],
+  "repetitions": 2,
+  "arms": ["generator", "list"],
+  "measurement": "ONE_FRESH_SUBPROCESS_PER_ARM_PER_CELL",
+  "decision": "ITERATE_R0_NO_NATIVE_GO",
+  "workloads": [
+    {"id": "max2", "kind": "world", "world": "world-max2.v0.1.yaml", "arity": 2, "seed": 0, "max_proposals": 250},
+    {"id": "min2", "kind": "world", "world": "world-min2.v0.1.yaml", "arity": 2, "seed": 0, "max_proposals": 250},
+    {"id": "absdiff", "kind": "world", "world": "world-absdiff.v0.2.yaml", "arity": 2, "seed": 0, "max_proposals": 1200},
+    {"id": "exhaustion", "kind": "world", "world": "world-min2.v0.1.yaml", "arity": 2, "seed": 0, "max_proposals": 1},
+    {"id": "search3", "kind": "search_only", "arity": 3, "seed": 0, "max_proposals": 80},
+    {"id": "search3-large", "kind": "search_only", "arity": 3, "seed": 0, "max_proposals": 3000}
+  ]
+}
