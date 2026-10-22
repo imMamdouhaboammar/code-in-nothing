@@ -62,4 +62,27 @@ The output directory must exist and the target file must not. The final results 
 
 ## Exploratory measurements
 
-**NOT RUN at preregistration.** No performance result or native GO claimed.
+At preregistration: **NOT RUN**. The following measurements were collected afterward, from clean local commit `386fbda24ac409c6784bf776b84b24dcc9956bc1` on 2026-10-22.
+
+Raw evidence: [`r0-python-control-20261022.json.gz`](../../experiments/native/r0-python-control-20261022.json.gz), a 13,905-byte deterministic gzip of the complete 276,341-byte JSON report.
+
+- Compressed SHA-256: `cf1bdeaac09de4a36c2947c2ed367a99bd10d217dbf660ee6fd721e7b492baa9`.
+- Decompressed SHA-256: `5ab63c20452010e45cc5fb54ff9ff305524e0fec73adab74b81edfe5481f0542`.
+- Manifest SHA-256: `fd777dbbb3140fe41149acc8a8045e8c92c35163201514c7f6cba09c2aad4828`.
+- Host: Linux x86_64, Python 3.12.14, Intel Xeon Platinum 8573C, 9 visible logical CPUs, shared host with uncontrolled load.
+- 90 matched pairs (180 arm runs), 15 pairs per workload. All pairs retained exact candidate hashes/traces, logical counters, verdict scopes and screening/verification work. First arm: generator 48 times, list 42 times.
+
+The ratio below is the median of paired generator/list **whole-workload wall-time** ratios: above 1 means list materialization was faster within those pairs. It is descriptive, not an independent effect estimate.
+
+| Workload | Reference verdict | Median paired ratio | Observation |
+| --- | --- | ---: | --- |
+| MAX2 | UNKNOWN | 0.973 | Slightly slower list arm |
+| MIN2 | PASS (finite world) | 1.118 | Slightly faster list arm |
+| ABSDIFF | UNKNOWN | 1.088 | Slightly faster list arm |
+| One-proposal exhaustion | UNKNOWN | 0.911 | Slower list arm |
+| Three-input search (80) | SEARCH_ONLY | 1.131 | Faster list arm, no world verification |
+| Three-input search (3,000) | SEARCH_ONLY | 1.105 | Faster list arm, no world verification |
+
+The isolated v0.1 composition ratios around 1.5–1.65 did **not** translate to that scale of complete H0 workload improvement. These paired H0 runs cover search, screening and independent finite verification where applicable, but **not** full organism lifecycle, archive, admission, B0/B1/B2 training or native interop. The reference branch now includes experimental mode dispatch, so these are two arms within the same modified harness, not timing of a byte-identical prior binary. The shared host was uncontrolled, same-process samples are correlated, there is no per-trial isolated RSS, and 5 repetitions per seed do not justify p95 or statistical significance. The small ratios may be influenced by noise and order effects.
+
+**Decision: `ITERATE_R0_NO_NATIVE_GO`.** This run supports no Rust speedup or mandatory change to Python search. Default generator behavior remains in place; other R0 gates listed above remain open. The execution SHA is a local commit: if GitHub publication creates a different commit identity, preserve this raw report and compare published source trees before claiming provenance equivalence.
