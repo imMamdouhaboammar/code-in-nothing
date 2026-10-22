@@ -51,6 +51,18 @@ LOGICAL_FIELDS = (
 )
 
 
+class ParityFailure(RuntimeError):
+    """A failed paired control with both arm records retained for diagnosis."""
+
+    def __init__(self, diagnostic: dict):
+        self.diagnostic = diagnostic
+        super().__init__(
+            f"R0 composition parity failure in {diagnostic['workload']} "
+            f"seed={diagnostic['seed']} repetition={diagnostic['repetition']}: "
+            f"{','.join(diagnostic['mismatched_fields'])}"
+        )
+
+
 def validate_control_protocol(value: object) -> dict:
     """Accept only the committed comparison, not attacker-selected task paths."""
     required = {
@@ -116,9 +128,15 @@ def paired_workload(workload: dict, base: dict, *, seed: int, repetition: int) -
     alternative = _logical(samples["list"])
     if reference != alternative:
         mismatched = [key for key in LOGICAL_FIELDS if reference[key] != alternative[key]]
-        raise RuntimeError(
-            f"R0 composition parity failure in {task['id']} seed={seed} "
-            f"repetition={repetition}: {','.join(mismatched)}"
+        raise ParityFailure(
+            {
+                "workload": task["id"],
+                "seed": seed,
+                "repetition": repetition,
+                "first_arm": first_arm,
+                "mismatched_fields": mismatched,
+                "samples": samples,
+            }
         )
     return {
         "workload": task["id"],
@@ -170,22 +188,28 @@ def run_control(protocol: dict) -> dict:
     provenance = _provenance()
     base = load_genome(ROOT / GENOME)["genome"]["base"]
     pairs = []
-    for workload in protocol["workloads"]:
-        for seed in protocol["seeds"]:
-            for repetition in range(protocol["repetitions"]):
-                pairs.append(paired_workload(workload, base, seed=seed, repetition=repetition))
-    return {
+    failure = None
+    try:
+        for workload in protocol["workloads"]:
+            for seed in protocol["seeds"]:
+                for repetition in range(protocol["repetitions"]):
+                    pairs.append(paired_workload(workload, base, seed=seed, repetition=repetition))
+    except ParityFailure as exc:
+        failure = exc.diagnostic
+    report = {
         "protocol": REPORT_PROTOCOL,
         "manifest": protocol,
         "manifest_sha256": fingerprint(protocol),
         "provenance": provenance,
         "pairs": pairs,
-        "summary": _summarize(pairs),
+        "summary": _summarize(pairs) if failure is None else [],
         "paired_samples": len(pairs),
         "comparisons": "WHOLE_WORKLOAD_PYTHON_ONLY",
         "memory": "PER_TRIAL_RSS_NOT_MEASURED",
         "native_speedup": "NOT_MEASURED",
-        "decision": "ITERATE_R0_NO_NATIVE_GO",
+        "decision": "ITERATE_R0_NO_NATIVE_GO"
+        if failure is None
+        else "INVALID_CONTROL_NO_NATIVE_GO",
         "remaining_r0_gates": [
             "allocation and dedup cost attribution",
             "isolated per-trial peak RSS",
@@ -193,6 +217,10 @@ def run_control(protocol: dict) -> dict:
             "native FFI/startup cost only after an independently justified R1 GO",
         ],
     }
+    if failure is not None:
+        report["status"] = "INVALID"
+        report["failure"] = failure
+    return report
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -207,6 +235,8 @@ def main(argv: list[str] | None = None) -> int:
         with args.output.open("x", encoding="utf-8") as stream:
             json.dump(report, stream, indent=2, sort_keys=True, allow_nan=False)
             stream.write("\n")
+        if report.get("status") == "INVALID":
+            return 2
     except (ValueError, OSError, RuntimeError, subprocess.SubprocessError) as exc:
         parser.exit(2, f"INVALID integrated R0 control: {exc}\n")
     return 0

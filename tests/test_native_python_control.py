@@ -147,6 +147,37 @@ def test_pair_refuses_silent_parity_mismatch(monkeypatch):
         runner.paired_workload(workload, BASE, seed=0, repetition=0)
 
 
+def test_cli_preserves_completed_pairs_and_both_samples_on_mismatch(tmp_path, monkeypatch):
+    actual = runner.run_workload
+    arm_calls = 0
+
+    def divergent(workload, base, *, composition_mode):
+        nonlocal arm_calls
+        sample = actual(workload, base, composition_mode=composition_mode)
+        arm_calls += 1
+        if arm_calls == 4:
+            sample["logical_counters"]["attempted_shapes"] += 1
+        return sample
+
+    monkeypatch.setattr(runner, "run_workload", divergent)
+    target = tmp_path / "failed-control.json"
+    try:
+        code = runner.main(["--output", str(target)])
+    except SystemExit as exc:
+        code = exc.code
+
+    assert code == 2
+    assert target.exists(), "parity failures must retain their evidence"
+    report = json.loads(target.read_text(encoding="utf-8"))
+    assert report["status"] == "INVALID"
+    assert report["summary"] == []
+    assert len(report["pairs"]) == 1
+    assert report["pairs"][0]["logical_equal"] is True
+    assert report["failure"]["mismatched_fields"] == ["logical_counters"]
+    assert set(report["failure"]["samples"]) == {"generator", "list"}
+    assert report["decision"] == "INVALID_CONTROL_NO_NATIVE_GO"
+
+
 def test_cli_refuses_output_overwrite_before_any_measurement(tmp_path, monkeypatch, capsys):
     target = tmp_path / "existing.json"
     target.write_text("preserved", encoding="utf-8")
