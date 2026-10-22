@@ -9,15 +9,11 @@ from pathlib import Path
 
 import pytest
 
+import experiments.native_python_control as runner
 from cin.contracts import load_genome
 from cin.ir import canonical_hash
 from cin.search import SearchStats, candidate_stream
 from experiments.hardware.profile_signature_search import run_workload
-from experiments.native_python_control import (
-    DEFAULT_MANIFEST,
-    load_control_protocol,
-    paired_workload,
-)
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = load_genome(ROOT / "examples/seed-genome.v0.1.yaml")["genome"]["base"]
@@ -39,7 +35,7 @@ def _snapshot(seed: int, limit: int, mode: str, base: dict = BASE) -> tuple[list
 
 
 def test_control_manifest_is_frozen_and_rejects_path_injection():
-    protocol = load_control_protocol(DEFAULT_MANIFEST)
+    protocol = runner.load_control_protocol(runner.DEFAULT_MANIFEST)
     assert protocol["seeds"] == [0, 1, 2]
     assert protocol["repetitions"] == 5
     assert protocol["arms"] == ["generator", "list"]
@@ -55,10 +51,8 @@ def test_control_manifest_is_frozen_and_rejects_path_injection():
     ]:
         altered = copy.deepcopy(protocol)
         change(altered)
-        from experiments.native_python_control import validate_control_protocol
-
         with pytest.raises(ValueError):
-            validate_control_protocol(altered)
+            runner.validate_control_protocol(altered)
 
 
 @pytest.mark.parametrize("seed", [0, 1, 3])
@@ -123,7 +117,7 @@ def test_paired_control_retains_unknown_and_exact_per_arm_records():
         "seed": 0,
         "max_proposals": 1,
     }
-    pair = paired_workload(exhaustion, BASE, seed=1, repetition=0)
+    pair = runner.paired_workload(exhaustion, BASE, seed=1, repetition=0)
     assert pair["first_arm"] == "list"
     assert set(pair["samples"]) == {"generator", "list"}
     assert all(row["status"] == "UNKNOWN" for row in pair["samples"].values())
@@ -132,8 +126,6 @@ def test_paired_control_retains_unknown_and_exact_per_arm_records():
 
 
 def test_pair_refuses_silent_parity_mismatch(monkeypatch):
-    import experiments.native_python_control as runner
-
     real_workload = runner.run_workload
 
     def divergent(workload, base, *, composition_mode):
@@ -152,12 +144,10 @@ def test_pair_refuses_silent_parity_mismatch(monkeypatch):
         "max_proposals": 1,
     }
     with pytest.raises(RuntimeError, match="parity"):
-        paired_workload(workload, BASE, seed=0, repetition=0)
+        runner.paired_workload(workload, BASE, seed=0, repetition=0)
 
 
 def test_cli_refuses_output_overwrite_before_any_measurement(tmp_path, monkeypatch, capsys):
-    import experiments.native_python_control as runner
-
     target = tmp_path / "existing.json"
     target.write_text("preserved", encoding="utf-8")
 
