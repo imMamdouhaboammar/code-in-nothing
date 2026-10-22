@@ -1,6 +1,6 @@
 # R0 integrated pure-Python composition control v0.2
 
-Status: **PREREGISTERED, NOT YET MEASURED**. Research continuation of Issue #12 after the partial R0 v0.1 reference. This is not a Rust experiment or a native GO decision.
+Current status: **PREREGISTERED BEFORE MEASUREMENT; EXPLORATORY RUN COMPLETED 2026-10-22; R0 STILL OPEN**. The original preregistration commit recorded the premeasurement status; its history remains intact. Research continuation of Issue #12 after the partial R0 v0.1 reference. This is not a Rust experiment or a native GO decision.
 
 ## Question and competing explanations
 
