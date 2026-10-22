@@ -1,0 +1,259 @@
+{
+  "source_commit": "934cd06bd36d7e79121fdcd36d4217fb15064a35",
+  "public_probes": [
+    [
+      -4,
+      -1
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      3,
+      -2
+    ]
+  ],
+  "corpora": [
+    {
+      "seed": 0,
+      "logical_counters": {
+        "attempted_shapes": 29,
+        "probe_evaluations": 1715,
+        "observational_prunes": 11,
+        "integer_representatives": 13,
+        "boolean_representatives": 11
+      },
+      "proposals": [
+        {
+          "hash": "05834ec4c4ba5c271e177370bd3e4d00070e4222134b2dca12dfd73e8e382efc",
+          "operator": "replace_subtree",
+          "values": [
+            -1,
+            0,
+            -2
+          ]
+        },
+        {
+          "hash": "e52979e9dc26986bbe9bf5c1333b8d8decd411037b4757e2a94a54d9e29cb4eb",
+          "operator": "replace_subtree",
+          "values": [
+            -1,
+            -1,
+            -1
+          ]
+        },
+        {
+          "hash": "56a21764477204a24c8bf20479494d5362cd6221fd0be6e923bc17084ccf73c5",
+          "operator": "replace_subtree",
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "hash": "fd31f1892c0ef14a51e25d2eb8b69762aa19a39ff53032d21c5d3f301c3cc812",
+          "operator": "replace_subtree",
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "hash": "842ece6dd2e17239f80919398d4d8e39c4f7d4d3cf94cee659169c3e763082cb",
+          "operator": "compose_subtree",
+          "values": [
+            -8,
+            0,
+            6
+          ]
+        },
+        {
+          "hash": "7413c7977d0c68547e969c7da6200313122b7f2ae16af76ec932d5d5ec49d20c",
+          "operator": "compose_subtree",
+          "values": [
+            -5,
+            0,
+            1
+          ]
+        },
+        {
+          "hash": "01cbdc131d2d957efe5ec0c8590941bb5595604bd1a2509f143210bfeba01040",
+          "operator": "compose_subtree",
+          "values": [
+            -3,
+            0,
+            5
+          ]
+        },
+        {
+          "hash": "cdeb52edb916a251a7bbc6951a02bfcb7eb0833971f766a83838a48088fa9dae",
+          "operator": "compose_subtree",
+          "values": [
+            -5,
+            -1,
+            2
+          ]
+        },
+        {
+          "hash": "0340bb21b0e8d6b67d2c0b5eedd3e11bad34e1d2721a4055790ac3e80dedebbf",
+          "operator": "compose_subtree",
+          "values": [
+            -3,
+            1,
+            4
+          ]
+        },
+        {
+          "hash": "d33e691ada4c5f1453740bce0c1a6b76224185e0d3142ae54e04769d45085b53",
+          "operator": "compose_subtree",
+          "values": [
+            3,
+            0,
+            -5
+          ]
+        },
+        {
+          "hash": "962e74e709565202b22bd9e26dde2f55a8693e00ce80ed281f4ccf22b721f72a",
+          "operator": "compose_subtree",
+          "values": [
+            -2,
+            0,
+            -4
+          ]
+        },
+        {
+          "hash": "394299f862afbe83754bf4c02d3ccb89780a0e589639656a63e0ece038874d49",
+          "operator": "compose_subtree",
+          "values": [
+            -2,
+            -1,
+            -3
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "logical_counters": {
+        "attempted_shapes": 29,
+        "probe_evaluations": 1715,
+        "observational_prunes": 11,
+        "integer_representatives": 13,
+        "boolean_representatives": 11
+      },
+      "proposals": [
+        {
+          "hash": "05834ec4c4ba5c271e177370bd3e4d00070e4222134b2dca12dfd73e8e382efc",
+          "operator": "replace_subtree",
+          "values": [
+            -1,
+            0,
+            -2
+          ]
+        },
+        {
+          "hash": "e52979e9dc26986bbe9bf5c1333b8d8decd411037b4757e2a94a54d9e29cb4eb",
+          "operator": "replace_subtree",
+          "values": [
+            -1,
+            -1,
+            -1
+          ]
+        },
+        {
+          "hash": "56a21764477204a24c8bf20479494d5362cd6221fd0be6e923bc17084ccf73c5",
+          "operator": "replace_subtree",
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "hash": "fd31f1892c0ef14a51e25d2eb8b69762aa19a39ff53032d21c5d3f301c3cc812",
+          "operator": "replace_subtree",
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "hash": "842ece6dd2e17239f80919398d4d8e39c4f7d4d3cf94cee659169c3e763082cb",
+          "operator": "compose_subtree",
+          "values": [
+            -8,
+            0,
+            6
+          ]
+        },
+        {
+          "hash": "01cbdc131d2d957efe5ec0c8590941bb5595604bd1a2509f143210bfeba01040",
+          "operator": "compose_subtree",
+          "values": [
+            -3,
+            0,
+            5
+          ]
+        },
+        {
+          "hash": "7413c7977d0c68547e969c7da6200313122b7f2ae16af76ec932d5d5ec49d20c",
+          "operator": "compose_subtree",
+          "values": [
+            -5,
+            0,
+            1
+          ]
+        },
+        {
+          "hash": "0340bb21b0e8d6b67d2c0b5eedd3e11bad34e1d2721a4055790ac3e80dedebbf",
+          "operator": "compose_subtree",
+          "values": [
+            -3,
+            1,
+            4
+          ]
+        },
+        {
+          "hash": "cdeb52edb916a251a7bbc6951a02bfcb7eb0833971f766a83838a48088fa9dae",
+          "operator": "compose_subtree",
+          "values": [
+            -5,
+            -1,
+            2
+          ]
+        },
+        {
+          "hash": "d33e691ada4c5f1453740bce0c1a6b76224185e0d3142ae54e04769d45085b53",
+          "operator": "compose_subtree",
+          "values": [
+            3,
+            0,
+            -5
+          ]
+        },
+        {
+          "hash": "962e74e709565202b22bd9e26dde2f55a8693e00ce80ed281f4ccf22b721f72a",
+          "operator": "compose_subtree",
+          "values": [
+            -2,
+            0,
+            -4
+          ]
+        },
+        {
+          "hash": "aa7666a8693a306f5fba2f17f2b070a6afb09c504fd9440bf34c0a6d93f596fc",
+          "operator": "compose_subtree",
+          "values": [
+            0,
+            1,
+            -1
+          ]
+        }
+      ]
+    }
+  ]
+}
