@@ -134,4 +134,73 @@ The next engineering gate is `P1-01` (immutable cohort manifest + normalized rep
 
 ---
 
+## 2026-10-19 · Milestone P1 Slices + Guided Synthesis & Hardware H0 Baseline
+
+**Runtime:** `cin-lab/0.1` · `934cd06` · Python 3.11–3.13
+**Verification sources:** tests listed below; historical H0 measurements in [`experiments/hardware/RESULTS.md`](../experiments/hardware/RESULTS.md).
+**Language model calls:** 0
+
+### Verified Capabilities
+
+| Capability | How It Works | Verified By |
+| :--- | :--- | :--- |
+| **Finite-Epoch Scheduler & Governor Accounting** | Single-process epochs with single-use reservations and settlement of reported logical work; candidate limits persist across epochs within one run; plateau termination. | `tests/test_scheduler.py`, `tests/test_governor.py` (ADR 0008) |
+| **Evidence-Gated Guided Synthesis (B0/B1/B2 Arms)** | B0 uses task-blind search; B1 measures public-panel fitness without steering search; B2 uses public fitness to select parents. Independent finite-world verification decides success; no private verdict or witness enters parent selection. | `cin/training.py`, `cin/guided_experiment.py`, `tests/test_training.py`, `tests/test_guided_experiment.py` |
+| **Non-Invasive H0 CPU Profiler & Amdahl Ceiling** | Measures search-stage wall time and whole-workload process CPU time across frozen manifests; calculates an optimistic bound for eliminating the entire search stage. Signature-eligible cost remains unresolved; the harness does not enforce GO/NO-GO gates. | `experiments/hardware/profile_signature_search.py`, `tests/test_hardware_profile.py` (proposed ADR 0009) |
+| **Extended Math Synthesis (M1 Suite)** | Searches for `min2` and `absdiff` using public-example screening, then independently checks survivors against complete declared finite domains. World admission and organism inheritance are not run by this harness. | `experiments/run_m1.py`, `tests/test_math_search.py` |
+| **Multi-Argument Task-Blind Probing** | Typed candidate enumeration supports 1–8 integer arguments (`cin.genome/v0.2`) with bounded probe work while preserving legacy contracts. This does not extend formal world verification beyond its two-input scope. | `tests/test_multi_input_ir.py` |
+
+### Research Applications Supported at This Milestone
+
+#### 1. Public-Panel Search with Independent Finite Verification
+
+- An immutable public panel supplies training feedback for B1 measurement or B2 search guidance.
+- `run_trial` verifies each evaluated candidate independently against the declared two-input finite world; public-panel success alone cannot produce the trial's `PASS`.
+- Generator and verifier responsibilities are separated in code within one trusted Python process. There is no physical or OS isolation boundary.
+- The trial reports `admission: not_run` and `inherited_capability: false`; it does not admit worlds, promote organism capabilities or produce deployment-ready controllers.
+
+**Supported scope:** A research harness for integer arithmetic, comparisons and conditional selection under existing two-input world contracts. Wider-arity control synthesis requires a versioned multi-input verifier and application-specific evidence.
+
+---
+
+#### 2. Budgeted Single-Process Synthesis Experiments
+
+- `cin.governor.Governor` reserves declared resource vectors, rejects reused or foreign grants, and settles reported logical costs.
+- `FiniteScheduler` preserves candidate ceilings across epochs in one run and reports explicit terminal reasons, including plateau and budget exhaustion.
+- Accounting covers the documented proposal, probe, admission and verifier dimensions. These counters are not calibrated CPU instructions or OS-enforced memory/time quotas.
+
+**Boundary:** Multiple actor ledgers are supported, but the scheduler runs one organism. Concurrent tenant isolation, crash-safe accounting and durable resume are not implemented; a new process does not restore prior budgets automatically.
+
+---
+
+#### 3. CPU Profiling Before a Hardware Investment Decision
+
+- H0 reports search, screening and verification wall times and total process CPU time for frozen workloads.
+- Its Amdahl ceiling assumes the entire search stage disappears, including work that would remain on the host. It is not measured accelerator speedup.
+- Signature-only eligible cost, transfer overhead and hardware execution remain unresolved. The measurements inform a later GO/NO-GO/INCONCLUSIVE review; the harness neither makes that decision nor rejects hardware projects.
+
+**Evidence:** [`experiments/hardware/RESULTS.md`](../experiments/hardware/RESULTS.md) retains exploratory, unsuccessful and `UNKNOWN` runs. H0 remains **PARTIAL / INCONCLUSIVE**.
+
+---
+
+### Honest Boundaries
+
+| Claim | Status |
+| :--- | :--- |
+| Independent exhaustive verification over declared two-input finite worlds | **Implemented**; finite scope only |
+| Finite-epoch scheduling with single-use reservations (P1-02) | **Implemented**; single process |
+| Opt-in public training guidance with independent verification | **Implemented**; experimental trials, no admission or inheritance |
+| H0 timing harness and optimistic whole-search Amdahl ceiling | **Implemented**; H0 gate **PARTIAL / INCONCLUSIVE** |
+| Measured FPGA / hardware speedup | **`NOT_MEASURED`** |
+| Multi-input formal worlds, controller deployment, tenant/OS isolation | **Not implemented** |
+| Durable resume, crash-safe budgets and atomic births (P1-03) | **Not implemented** |
+| Multi-task semantic world co-evolution (P2) | **Designed, not implemented** |
+| Cross-task hereditary abstraction reuse (P3) | **Designed, not implemented** |
+| Scientific self-improvement | **`NOT_ESTABLISHED`** |
+| General-purpose code generation or software engineering | **Out of scope; not a goal** |
+
+**Historical scope clarification:** The preceding entry is retained as a historical record. Its 1–8 input statements describe IR/search support, not multi-input formal worlds. Pricing, safety, compliance and patching are application hypotheses requiring their own contracts and validation. In-process interpreter restrictions and unanchored hash chains do not establish host isolation, authenticated provenance, durable replay or production readiness. Current scope follows `AGENTS.md`, `CONTEXT.md` and the architecture/security contracts.
+
+---
+
 *This document is append-only. The next entry will be added when a new milestone passes its acceptance gates.*
