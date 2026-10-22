@@ -79,8 +79,15 @@ def load_protocol(path: Path) -> dict:
         or data["native_go"] != "REQUIRES_END_TO_END_PARITY_AND_2X"
     ):
         raise ValueError("fixed experiment arms and decision rule required")
+    workloads = data["workloads"]
+    if (
+        not isinstance(workloads, list)
+        or not workloads
+        or any(not isinstance(row, dict) for row in workloads)
+    ):
+        raise ValueError("workloads must be a nonempty list of objects")
     validate_manifest(_h0(data, seeds[0]))
-    if not any(row["kind"] == "world" and row["id"] != "exhaustion" for row in data["workloads"]):
+    if not any(row["kind"] == "world" and row["id"] != "exhaustion" for row in workloads):
         raise ValueError("at least one guided-compatible world workload required")
     return data
 

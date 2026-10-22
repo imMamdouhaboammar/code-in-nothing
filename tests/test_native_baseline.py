@@ -278,3 +278,19 @@ def test_cli_handles_git_failure_as_invalid_baseline(tmp_path, monkeypatch, caps
 
     assert exit_info.value.code == 2
     assert "INVALID R0 baseline" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("workloads", [1, [None]])
+def test_cli_rejects_malformed_workloads_without_traceback(tmp_path, capsys, workloads):
+    manifest = json.loads(DEFAULT_MANIFEST.read_text(encoding="utf-8"))
+    manifest["workloads"] = workloads
+    manifest_path = tmp_path / "invalid-r0-manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    output_path = tmp_path / "r0-report.json"
+
+    with pytest.raises(SystemExit) as exit_info:
+        native_baseline.main(["--manifest", str(manifest_path), "--output", str(output_path)])
+
+    assert exit_info.value.code == 2
+    assert "INVALID R0 baseline" in capsys.readouterr().err
+    assert not output_path.exists()
