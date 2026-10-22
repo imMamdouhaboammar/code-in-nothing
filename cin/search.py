@@ -75,6 +75,8 @@ def candidate_stream(
     seed: int = 0,
     max_proposals: int = 2000,
     stats: SearchStats | None = None,
+    *,
+    _composition_mode: str = "generator",
 ) -> Iterator[Proposal]:
     """Enumerate typed expressions by AST node count, with bounded work.
 
@@ -86,6 +88,8 @@ def candidate_stream(
     """
     if type(max_proposals) is not int or max_proposals < 1:
         return
+    if _composition_mode not in ("generator", "list"):
+        raise ValueError("unknown experimental signature composition mode")
     if type(seed) is not int or seed < 0:
         raise ValueError("seed must be a nonnegative integer")
     check_tree(parent, base)
@@ -178,7 +182,16 @@ def candidate_stream(
                             return
                         if stats is not None:
                             stats.probe_evaluations += len(probes)
-                        if op == "Add":
+                        if _composition_mode == "list":
+                            if op == "Add":
+                                values = tuple([a + b for a, b in zip(left.values, right.values)])
+                            elif op == "Sub":
+                                values = tuple([a - b for a, b in zip(left.values, right.values)])
+                            elif op == "LessThan":
+                                values = tuple([a < b for a, b in zip(left.values, right.values)])
+                            else:
+                                values = tuple([a == b for a, b in zip(left.values, right.values)])
+                        elif op == "Add":
                             values = tuple(a + b for a, b in zip(left.values, right.values))
                         elif op == "Sub":
                             values = tuple(a - b for a, b in zip(left.values, right.values))
@@ -216,9 +229,18 @@ def candidate_stream(
                                 return
                             if stats is not None:
                                 stats.probe_evaluations += len(probes)
-                            values = tuple(
-                                a if p else b for p, a, b in zip(pred.values, yes.values, no.values)
-                            )
+                            if _composition_mode == "list":
+                                values = tuple(
+                                    [
+                                        a if p else b
+                                        for p, a, b in zip(pred.values, yes.values, no.values)
+                                    ]
+                                )
+                            else:
+                                values = tuple(
+                                    a if p else b
+                                    for p, a, b in zip(pred.values, yes.values, no.values)
+                                )
                             expr = {
                                 "op": "If",
                                 "args": [pred.expression, yes.expression, no.expression],
