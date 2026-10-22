@@ -1,0 +1,18 @@
+{
+  "protocol": "cin.native-python-control.manifest/v0.2",
+  "source_commit": "8349c88ed498662eb4fd8f72784fdf910bcb181a",
+  "seeds": [0, 1, 2],
+  "repetitions": 5,
+  "arms": ["generator", "list"],
+  "order": "alternate-first-arm-by-repetition-and-seed",
+  "comparison": "EXACT_LOGICAL_PARITY_AND_PAIRED_END_TO_END_WALL_CPU",
+  "decision": "ITERATE_R0_NO_NATIVE_GO",
+  "workloads": [
+    {"id": "max2", "kind": "world", "world": "world-max2.v0.1.yaml", "arity": 2, "seed": 0, "max_proposals": 250},
+    {"id": "min2", "kind": "world", "world": "world-min2.v0.1.yaml", "arity": 2, "seed": 0, "max_proposals": 250},
+    {"id": "absdiff", "kind": "world", "world": "world-absdiff.v0.2.yaml", "arity": 2, "seed": 0, "max_proposals": 1200},
+    {"id": "exhaustion", "kind": "world", "world": "world-min2.v0.1.yaml", "arity": 2, "seed": 0, "max_proposals": 1},
+    {"id": "search3", "kind": "search_only", "arity": 3, "seed": 0, "max_proposals": 80},
+    {"id": "search3-large", "kind": "search_only", "arity": 3, "seed": 0, "max_proposals": 3000}
+  ]
+}
