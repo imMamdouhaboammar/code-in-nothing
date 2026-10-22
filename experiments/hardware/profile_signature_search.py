@@ -207,9 +207,12 @@ def run_workload(
     *,
     screen: tuple[tuple[int, int], ...] = SCREEN,
     profile: bool = False,
+    composition_mode: str = "generator",
 ) -> dict:
-    """Exercise the unchanged generator; benchmark data never enters search."""
+    """Exercise bounded search; opt-in Python tuple strategy is an R0 control."""
     _validate_workload(workload)
+    if composition_mode not in ("generator", "list"):
+        raise ValueError("unknown experimental signature composition mode")
     local_base = deepcopy(base)
     world = None
     if workload["kind"] == "world":
@@ -242,6 +245,7 @@ def run_workload(
             seed=workload["seed"],
             max_proposals=workload["max_proposals"],
             stats=stats,
+            _composition_mode=composition_mode,
         )
         while True:
             tick = time.perf_counter_ns()
