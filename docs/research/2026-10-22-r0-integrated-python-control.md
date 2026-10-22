@@ -12,7 +12,9 @@ Does constructing signature tuples from a list comprehension instead of a genera
 
 ## Frozen comparison before measurement
 
-Manifest: [`native-python-control.v0.2.json`](../../experiments/native-python-control.v0.2.json). Source reference: local R0 PR #13 corrected tree at `8349c88ed498662eb4fd8f72784fdf910bcb181a`. The comparison protocol and test implementation are committed before first timings. The v0.1 manifest, reports, raw gzip, fixtures and H0 historical results stay untouched.
+Manifest: [`native-python-control.v0.2.json`](../../experiments/native-python-control.v0.2.json). Source reference: public main after PR #13 at `f48b68f8d18f59515d88c87c0fa59ec7651a553f`. The local R0 worktree started from `8349c88ed498662eb4fd8f72784fdf910bcb181a`, whose relevant corrected R0 files match the published PR #13 files; public main also includes the independent PR #11 documentation. The comparison protocol and test implementation are committed before first research timings. The v0.1 manifest, reports, raw gzip, fixtures and H0 historical results stay untouched.
+
+Preregistration erratum: the first protocol commit `fa7702b` recorded local-only SHA `8349c88`. Before collecting comparison data, this follow-up amendment records the fetchable merged-main SHA `f48b68f`. The cells, hypotheses, pairing, thresholds and stop rules were not changed. Both commits preserve the chronology.
 
 | Dimension | Preregistered choice |
 | --- | --- |
