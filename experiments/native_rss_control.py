@@ -309,7 +309,8 @@ def main(argv: list[str] | None = None) -> int:
             stream.write("\n")
         return 2 if report.get("status") == "INVALID" else 0
     except (OSError, ValueError, RuntimeError) as exc:
-        parser.exit(2, f"INVALID isolated RSS control: {exc}\n")
+        print(f"INVALID isolated RSS control: {exc}", file=sys.stderr)
+        raise SystemExit(2) from exc
 
 
 if __name__ == "__main__":
