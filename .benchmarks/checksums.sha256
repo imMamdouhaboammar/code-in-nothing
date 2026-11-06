@@ -1,0 +1,12 @@
+9dcd3409955f87c84b2c0b3631052aec3a5fa496f5fad725f0e22780028e634b  examples/seed-genome.v0.1.yaml
+6ebae94379fe55fab0475c0cff6a65930daee61ecf04814e2839551dc72a199d  examples/seed-genome.v0.2.yaml
+15444e0d61e9e37a92c4c7b181a7ca640460a25620532863a25606b42f32f89d  examples/world-absdiff.v0.2.yaml
+58153a3d6ce98bc14200347a57f52af6ccbc1a9f31efad498b27b09858302f1e  examples/world-clamp3.v0.3.yaml
+27dd96bc784ef1340437da2fd7ef8f607b8002bf509b74bdba65755c97ce70a6  examples/world-max2.v0.1.yaml
+7ccd075e31c45c71837e752ffaf2c9b1f162b2aeeca6be55052becd8c75ceb10  examples/world-median3.v0.3.yaml
+35844707b4fa27e7775f485a6cfcd35df2a80d949f0bcb6105c23ad61fc30193  examples/world-min2.v0.1.yaml
+73d020d4d423e87b383de6a5291960e4a1cf81eb4686e07c68fae67155e4e0cd  schemas/growth-evidence.v0.1.schema.json
+61878ec9cde777bc123bd8eb675d7e026bba20819c5e57900c8cdff49c8f5933  schemas/seed-genome.v0.1.schema.json
+e4856e8e9e5f543568297a150eabd232560e4dd2d25e9de5fd1573287db42362  schemas/seed-genome.v0.2.schema.json
+546b89e4192774feb7736701acdcf5007b1abcd9c925f16bde494de766a1e2ad  schemas/world-spec.v0.1.schema.json
+e9fb6bd28aeba26d364baa14a0147c26f25d88a5135bc436e31e27845c9e3df5  schemas/world-spec.v0.3.schema.json

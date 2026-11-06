@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from itertools import product
 
 from .contracts import ContractError, validate_world
-from .ir import IRViolation, Limits, canonical_hash, check_tree, run_ir
+from .ir import IRViolation, Limits, canonical_hash, check_tree, run_ir_args
 from .search import SearchStats, candidate_stream
 
 
@@ -53,9 +53,12 @@ def _term(v, values):
     if isinstance(v, dict) and set(v) == {"sub"}:
         a, b = v["sub"]
         return _term(a, values) - _term(b, values)
-    if v in ("x", "y", "result"):
+    if isinstance(v, dict) and set(v) == {"add"}:
+        a, b = v["add"]
+        return _term(a, values) + _term(b, values)
+    if v in values:
         return values[v]
-    raise WorldViolation("unrecognized term")
+    raise WorldViolation(f"unrecognized term: {v}")
 
 
 def check_formula(formula: dict, values: dict) -> bool:
@@ -78,19 +81,20 @@ def check_formula(formula: dict, values: dict) -> bool:
 
 def _inputs(world, max_cases: int):
     domain = world["input_domain"]
-    x = domain["x"]
-    y = domain["y"]
-    count = (x["max"] - x["min"] + 1) * (y["max"] - y["min"] + 1)
+    var_names = list(domain.keys())
+    ranges = [range(domain[k]["min"], domain[k]["max"] + 1) for k in var_names]
+    count = 1
+    for r in ranges:
+        count *= len(r)
     if count > max_cases:
         raise WorldViolation("domain exceeds exhaustive budget")
     if count < 1:
         raise WorldViolation("empty domain")
-    for pair in product(range(x["min"], x["max"] + 1), range(y["min"], y["max"] + 1)):
-        yield pair
+    for pt in product(*ranges):
+        yield pt
 
 
 def _require_matching_signature(world: dict, base: dict) -> None:
-    """Older finite worlds are strictly two-input contracts, even with IR v0.2."""
     if world["input_types"] != base.get("input_types") or world["return_type"] != base.get(
         "return_type"
     ):
@@ -109,17 +113,22 @@ def verify_program(
         return Verdict("INVALID", 0, reason=str(exc))
     checked = 0
     ops = [0]
-    for x, y in points:
-        values = {"x": x, "y": y, "result": 0}
+    var_names = list(world["input_domain"].keys())
+    arity = len(var_names)
+    for point in points:
+        values = {k: v for k, v in zip(var_names, point)}
+        values["result"] = 0
         if not check_formula(world["precondition"], values):
             continue
         checked += 1
         try:
-            values["result"] = run_ir(program, x, y, limits, ops_counter=ops)
+            values["result"] = run_ir_args(
+                program, point, limits, ops_counter=ops, expected_arity=arity
+            )
         except IRViolation as exc:
-            return Verdict("UNKNOWN", checked, (x, y), str(exc), ops[0])
+            return Verdict("UNKNOWN", checked, point, str(exc), ops[0])
         if not check_formula(world["postcondition"], values):
-            return Verdict("FAIL", checked, (x, y), "postcondition counterexample", ops[0])
+            return Verdict("FAIL", checked, point, "postcondition counterexample", ops[0])
     if checked == 0:
         return Verdict("INVALID", 0, reason="vacuous precondition")
     return Verdict("PASS", checked, operations=ops[0])
@@ -137,8 +146,12 @@ def admit_world(
         validate_world(world)
         _require_matching_signature(world, base)
         points = list(_inputs(world, max_cases))
+        var_names = list(world["input_domain"].keys())
         if not any(
-            check_formula(world["precondition"], {"x": x, "y": y, "result": 0}) for x, y in points
+            check_formula(
+                world["precondition"], {**{k: v for k, v in zip(var_names, pt)}, "result": 0}
+            )
+            for pt in points
         ):
             return Admission("REJECTED", spec_hash, None, "vacuous precondition", 0)
     except (ContractError, WorldViolation) as exc:
