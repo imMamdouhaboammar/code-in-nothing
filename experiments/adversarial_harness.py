@@ -24,10 +24,10 @@ from __future__ import annotations
 
 import hashlib
 import math
-import os
 import random
 import resource
 import signal
+import stat
 import sys
 import time
 from dataclasses import dataclass
@@ -56,38 +56,54 @@ def get_peak_rss_kb() -> float:
     return float(raw)
 
 
-def verify_filesystem_integrity() -> None:
+def _benchmark_manifest_entries() -> list[tuple[str, str, Path]]:
     checksum_file = ROOT / ".benchmarks" / "checksums.sha256"
-    if not checksum_file.exists():
+    if not checksum_file.is_file():
         raise RuntimeError("Missing cryptographic manifest: .benchmarks/checksums.sha256")
 
-    with open(checksum_file, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            expected_hash, rel_path = line.split(maxsplit=1)
-            target_path = ROOT / rel_path
-            if not target_path.exists():
-                raise RuntimeError(f"Missing benchmark file: {rel_path}")
+    root = ROOT.resolve()
+    entries = []
+    for line in checksum_file.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        expected_hash, rel_path = line.split(maxsplit=1)
+        target_path = (ROOT / rel_path).resolve()
+        if not target_path.is_relative_to(root):
+            raise RuntimeError(f"Benchmark path escapes repository: {rel_path}")
+        if not target_path.is_file():
+            raise RuntimeError(f"Missing benchmark file: {rel_path}")
+        entries.append((expected_hash, rel_path, target_path))
+    return entries
 
-            # Assert write-lock protection
-            if os.access(target_path, os.W_OK):
-                raise PermissionError(
-                    f"INTEGRITY_BREACH: File {rel_path} has write permissions! "
-                    "Must be write-locked via chmod 444."
-                )
 
-            # Assert SHA-256 integrity
-            hasher = hashlib.sha256()
-            with open(target_path, "rb") as bf:
-                hasher.update(bf.read())
-            actual_hash = hasher.hexdigest()
-            if actual_hash != expected_hash:
-                raise ValueError(
-                    f"TAMPERING_DETECTED: Hash mismatch for {rel_path}!\n"
-                    f"Expected: {expected_hash}\nActual:   {actual_hash}"
-                )
+def _check_benchmark_hash(expected_hash: str, rel_path: str, target_path: Path) -> None:
+    actual_hash = hashlib.sha256(target_path.read_bytes()).hexdigest()
+    if actual_hash != expected_hash:
+        raise ValueError(
+            f"TAMPERING_DETECTED: Hash mismatch for {rel_path}!\n"
+            f"Expected: {expected_hash}\nActual:   {actual_hash}"
+        )
+
+
+def prepare_benchmark_write_locks() -> None:
+    """Explicit one-time setup for freshly checked-out benchmark inputs."""
+    entries = _benchmark_manifest_entries()
+    # Reject altered contents before changing any file permissions.
+    for expected_hash, rel_path, target_path in entries:
+        _check_benchmark_hash(expected_hash, rel_path, target_path)
+    for _, _, target_path in entries:
+        target_path.chmod(stat.S_IMODE(target_path.stat().st_mode) & ~0o222)
+
+
+def verify_filesystem_integrity() -> None:
+    for expected_hash, rel_path, target_path in _benchmark_manifest_entries():
+        if stat.S_IMODE(target_path.stat().st_mode) & 0o222:
+            raise PermissionError(
+                f"INTEGRITY_BREACH: File {rel_path} has write permissions! "
+                "Run 'python -m experiments.adversarial_harness --prepare-locks' "
+                "after verifying the benchmark manifest."
+            )
+        _check_benchmark_hash(expected_hash, rel_path, target_path)
 
 
 class TaskTimeout(Exception):
@@ -587,4 +603,10 @@ def run_full_adversarial_evaluation() -> None:
 
 
 if __name__ == "__main__":
-    run_full_adversarial_evaluation()
+    if sys.argv[1:] == ["--prepare-locks"]:
+        prepare_benchmark_write_locks()
+        print("Benchmark input hashes verified and files marked read-only")
+    elif not sys.argv[1:]:
+        run_full_adversarial_evaluation()
+    else:
+        raise SystemExit("Usage: python -m experiments.adversarial_harness [--prepare-locks]")

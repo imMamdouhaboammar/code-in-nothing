@@ -32,7 +32,7 @@
 
 ## 6. Build Hygiene Separation
 - Classify `pytest` pass counts, schema validation, and `ruff` checks strictly as build hygiene. Never cite self-authored unit tests passing as empirical evidence for a research claim.
-- Pair every synthesis or verification module with an adversarial falsification test covering 5 to 8 input variables, prime coefficients greater than 1, nested arithmetic-over-conditionals, and rational regions containing zero integers.
+- Pair each synthesis or verification module with adversarial tests relevant to its behavior: high arity for generators, non-unit coefficients and rational/integer gaps for numeric reasoning, nested arithmetic-over-conditionals for expression search, and cyclic or invalid macro graphs for AST transformations. Document inapplicable cases rather than testing them outside a module's contract.
 
 ## 7. Mandatory Milestone Report Schema
 Respond in the user's language using strictly these five sections, without introductory or closing commentary:

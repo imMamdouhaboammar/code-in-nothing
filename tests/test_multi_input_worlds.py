@@ -25,6 +25,16 @@ def test_result_name_is_reserved_for_output_only(path):
         validate_world(world)
 
 
+@pytest.mark.parametrize("section", ["precondition", "postcondition"])
+def test_undeclared_formula_terms_rejected_before_evaluation(section):
+    world = load_world("examples/world-clamp3.v0.3.yaml")
+    world[section] = {
+        "eq": [{"add": ["x", "undeclared"]}, "result" if section == "postcondition" else 0]
+    }
+    with pytest.raises(ContractError, match="undeclared"):
+        validate_world(world)
+
+
 def test_v03_schema_mirror_matches_package_contract():
     repo_root = Path(__file__).resolve().parents[1]
     package_schema = json.loads((repo_root / "cin/schemas/world-spec.v0.3.schema.json").read_text())

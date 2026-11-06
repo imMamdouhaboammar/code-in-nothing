@@ -87,30 +87,35 @@ class MacroRegistry:
         return len(self._macros)
 
     def desugar(self, node: dict) -> dict:
-        """Inlines all macro invocations, returning pure, standard CIN-IR."""
-        op = node.get("op")
-        if op == "CallMacro":
-            macro_name = node["macro"]
-            macro = self._macros.get(macro_name)
-            if not macro:
-                raise ValueError(f"Unknown macro '{macro_name}' in desugar")
-            desugared_args = [self.desugar(arg) for arg in node.get("args", [])]
-            if len(desugared_args) != macro.arity:
-                raise ValueError(
-                    f"Macro '{macro_name}' expects {macro.arity} arguments, got {len(desugared_args)}"
-                )
-            inlined = _substitute_args(macro.body, desugared_args)
-            return self.desugar(inlined)
+        """Inlines macros, rejecting cycles in macro definitions."""
 
-        if not node.get("args"):
-            return deepcopy(node)
+        def expand(current: dict, active: frozenset[str]) -> dict:
+            op = current.get("op")
+            if op == "CallMacro":
+                macro_name = current["macro"]
+                macro = self._macros.get(macro_name)
+                if not macro:
+                    raise ValueError(f"Unknown macro '{macro_name}' in desugar")
+                # Call-site arguments may contain ordinary nested calls to the same macro.
+                args = [expand(arg, active) for arg in current.get("args", [])]
+                if len(args) != macro.arity:
+                    raise ValueError(
+                        f"Macro '{macro_name}' expects {macro.arity} arguments, got {len(args)}"
+                    )
+                if macro_name in active:
+                    raise ValueError(f"Cyclic macro expansion involving '{macro_name}'")
+                return expand(_substitute_args(macro.body, args), active | {macro_name})
+            if not current.get("args"):
+                return deepcopy(current)
+            return {"op": op, "args": [expand(child, active) for child in current["args"]]}
 
-        desugared_children = [self.desugar(child) for child in node["args"]]
-        return {"op": op, "args": desugared_children}
+        return expand(node, frozenset())
 
     def sugar(self, node: dict) -> dict:
         """Replaces isomorphic subtrees with CallMacro invocations to compress AST."""
         for macro in self._macros.values():
+            if macro.body.get("op") == "Arg":
+                continue
             matched, args = _matches_macro_pattern(node, macro.body, macro.arity)
             if matched:
                 sugared_args = [self.sugar(a) for a in args]

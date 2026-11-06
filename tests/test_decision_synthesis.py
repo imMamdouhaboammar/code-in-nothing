@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import hashlib
 from copy import deepcopy
 from itertools import product
+
+import pytest
 
 from cin.contracts import load_genome, load_world, validate_world
 from cin.ir import Limits, run_ir_args
@@ -13,6 +16,40 @@ from cin.synthesis import (
 )
 from cin.synthesis.decision import SynthesisWork
 from cin.worlds import verify_program
+
+
+def test_benchmark_checkout_can_prepare_and_verify_write_locks(tmp_path, monkeypatch):
+    import experiments.adversarial_harness as harness
+
+    target = tmp_path / "schemas/sample.json"
+    target.parent.mkdir()
+    target.write_text("test payload", encoding="utf-8")
+    manifest = tmp_path / ".benchmarks/checksums.sha256"
+    manifest.parent.mkdir()
+    digest = hashlib.sha256(target.read_bytes()).hexdigest()
+    manifest.write_text(f"{digest}  schemas/sample.json\n", encoding="utf-8")
+    monkeypatch.setattr(harness, "ROOT", tmp_path)
+
+    with pytest.raises(PermissionError):
+        harness.verify_filesystem_integrity()
+    harness.prepare_benchmark_write_locks()
+    assert target.stat().st_mode & 0o222 == 0
+    harness.verify_filesystem_integrity()
+
+
+def test_benchmark_lock_setup_rejects_tampered_inputs(tmp_path, monkeypatch):
+    import experiments.adversarial_harness as harness
+
+    target = tmp_path / "sample.json"
+    target.write_text("tampered", encoding="utf-8")
+    manifest = tmp_path / ".benchmarks/checksums.sha256"
+    manifest.parent.mkdir()
+    manifest.write_text(f"{'0' * 64}  sample.json\n", encoding="utf-8")
+    monkeypatch.setattr(harness, "ROOT", tmp_path)
+
+    with pytest.raises(ValueError, match="TAMPERING_DETECTED"):
+        harness.prepare_benchmark_write_locks()
+    assert target.stat().st_mode & 0o200
 
 
 def test_high_arity_stress_probes_vary_each_input_independently():

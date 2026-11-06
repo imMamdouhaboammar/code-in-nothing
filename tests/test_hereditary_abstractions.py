@@ -2,6 +2,8 @@
 
 from copy import deepcopy
 
+import pytest
+
 from cin.contracts import load_world
 from cin.ir import canonical_hash, check_tree, run_ir_args
 from cin.synthesis.decision import synthesize_conditional_tree
@@ -130,6 +132,39 @@ class TestAntiUnification:
 
 
 class TestMacroRegistry:
+    def test_indirect_cyclic_macro_expansion_is_rejected(self):
+        first = {"op": "CallMacro", "macro": "second", "args": [{"op": "Arg", "index": 0}]}
+        second = {"op": "CallMacro", "macro": "first", "args": [{"op": "Arg", "index": 0}]}
+        registry = MacroRegistry(
+            {
+                "first": Macro("first", 1, first, "first"),
+                "second": Macro("second", 1, second, "second"),
+            }
+        )
+        with pytest.raises(ValueError, match="Cyclic macro"):
+            registry.desugar(
+                {"op": "CallMacro", "macro": "first", "args": [{"op": "Arg", "index": 0}]}
+            )
+
+    def test_nested_acyclic_macro_calls_with_same_name_still_work(self):
+        identity = Macro("identity", 1, {"op": "Arg", "index": 0}, "identity")
+        registry = MacroRegistry({"identity": identity})
+        expression = {
+            "op": "CallMacro",
+            "macro": "identity",
+            "args": [
+                {"op": "CallMacro", "macro": "identity", "args": [{"op": "Arg", "index": 0}]},
+            ],
+        }
+        assert registry.desugar(expression) == {"op": "Arg", "index": 0}
+
+    def test_identity_macro_cannot_recurse_during_sugaring(self):
+        identity = Macro("identity", 1, {"op": "Arg", "index": 0}, "identity")
+        max_macro = Macro("max2", 2, MAX2_IR, canonical_hash(MAX2_IR))
+        registry = MacroRegistry({"identity": identity, "max2": max_macro})
+        assert registry.sugar({"op": "Arg", "index": 0}) == {"op": "Arg", "index": 0}
+        assert registry.sugar(MAX2_IR)["macro"] == "max2"
+
     def test_macro_registration_and_desugaring(self):
         registry = MacroRegistry()
         max_macro = Macro(
