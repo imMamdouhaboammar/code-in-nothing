@@ -54,7 +54,9 @@ def validate_genome(genome: dict) -> dict:
 def validate_world(world: dict) -> dict:
     version = world.get("api_version") if isinstance(world, dict) else None
     schema = (
-        "world-spec.v0.2.schema.json"
+        "world-spec.v0.3.schema.json"
+        if version == "cin.world/v0.3"
+        else "world-spec.v0.2.schema.json"
         if version == "cin.world/v0.2"
         else "world-spec.v0.1.schema.json"
     )
@@ -72,9 +74,30 @@ def validate_world(world: dict) -> dict:
     if not has_term(world["postcondition"], "result"):
         raise ContractError("postcondition must constrain result")
     domain = world["input_domain"]
-    for a in ["x", "y"]:
+    if version == "cin.world/v0.3":
+        declared = set(domain) | {"result"}
+
+        def referenced_names(node):
+            if isinstance(node, dict):
+                for value in node.values():
+                    yield from referenced_names(value)
+            elif isinstance(node, list):
+                for value in node:
+                    yield from referenced_names(value)
+            elif isinstance(node, str):
+                yield node
+
+        unknown = (
+            set(referenced_names(world["precondition"]))
+            | set(referenced_names(world["postcondition"]))
+        ) - declared
+        if unknown:
+            raise ContractError(f"undeclared world term(s): {', '.join(sorted(unknown))}")
+    for a in domain:
         if domain[a]["max"] < domain[a]["min"]:
             raise ContractError("empty input domain")
+    if len(world["input_types"]) != len(domain):
+        raise ContractError("input_types length must match input_domain variable count")
     return deepcopy(world)
 
 

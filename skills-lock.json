@@ -13,6 +13,18 @@
       "skillPath": "ast-grep/skills/ast-grep/SKILL.md",
       "computedHash": "472c7cd092f9fad72e0ad0c58b5f6af627844730ecc420c009e25a835a5d6e81"
     },
+    "codebase-design": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/codebase-design/SKILL.md",
+      "computedHash": "aa11a96c08451f4ff86052d5da94004a8c97bb4ea41b2ac8a4300c189f66c89c"
+    },
+    "critical-thinking-logical-reasoning": {
+      "source": "sammcj/agentic-coding",
+      "sourceType": "github",
+      "skillPath": "skills/critical-thinking-logical-reasoning/SKILL.md",
+      "computedHash": "6aaa421d1d8a091d8064e7e67c8008aaebf50fe45d2969d8d1317692dc1e57b7"
+    },
     "experimental-design": {
       "source": "K-Dense-AI/scientific-agent-skills",
       "sourceType": "github",
@@ -78,6 +90,12 @@
       "sourceType": "github",
       "skillPath": "skills/scientific-writing/SKILL.md",
       "computedHash": "2d2433026204b29df1de362af24e0279e0a8fe927cf34eb6b19b950b94ad4636"
+    },
+    "sequential-thinking": {
+      "source": "secondsky/claude-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/sequential-thinking/skills/sequential-thinking/SKILL.md",
+      "computedHash": "9420fa44a3df9476884a8c493d3d7234da54e951d5229bd5f0d64eec04c12570"
     },
     "statistical-analysis": {
       "source": "K-Dense-AI/scientific-agent-skills",
