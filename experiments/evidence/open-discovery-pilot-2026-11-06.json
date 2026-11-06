@@ -1,0 +1,1050 @@
+{
+  "stage": "exploratory_not_confirmatory",
+  "freeze": {
+    "train": [
+      "max2",
+      "min2",
+      "absdiff"
+    ],
+    "heldout": [
+      "max3",
+      "min3",
+      "clamp3",
+      "median3",
+      "max4"
+    ],
+    "seeds": [
+      0,
+      1
+    ],
+    "max_rounds": 6,
+    "soft_round_timeout_sec": 2.0,
+    "hard_timeout_sec": 7.0,
+    "work_threshold": 200000,
+    "grammar": [
+      "Arg",
+      "ConstInt",
+      "Add",
+      "Sub",
+      "LessThan",
+      "Equal",
+      "If"
+    ]
+  },
+  "freeze_sha256": "bd30cd0b1b38d6cf0c822313bf59364de804b4dcb799c2cde5f860a85733c43e",
+  "host": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit",
+    "python": "3.12.13 (main, Jul 18 2026, 16:55:18) [Clang 22.1.3 ]",
+    "pid": 69800,
+    "git_revision": "ffaa0fe6fd4605dc513da526c2d54d556316fa7d"
+  },
+  "training": [
+    {
+      "task": "max2",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 1,
+      "shapes": 55,
+      "candidate_evaluations": 108,
+      "work": {
+        "primitive_subterms": 273,
+        "primitive_predicates": 273,
+        "subterm_representatives": 52,
+        "predicate_representatives": 2,
+        "probe_evaluations": 1200,
+        "auxiliary_scoring_steps": 3
+      },
+      "verifier_invocations": 1,
+      "verifier_ms": 28.1,
+      "elapsed_ms": 39.9,
+      "peak_rss_mib": 65.77,
+      "work_units": 1805,
+      "expression_hash": "7cf631c00e0b1caae100a3452aa73f7e91e7ae6492d9e817688de090b669aa51"
+    },
+    {
+      "task": "min2",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 1,
+      "shapes": 55,
+      "candidate_evaluations": 108,
+      "work": {
+        "primitive_subterms": 273,
+        "primitive_predicates": 273,
+        "subterm_representatives": 52,
+        "predicate_representatives": 2,
+        "probe_evaluations": 1200,
+        "auxiliary_scoring_steps": 2
+      },
+      "verifier_invocations": 1,
+      "verifier_ms": 5.09,
+      "elapsed_ms": 21.18,
+      "peak_rss_mib": 65.94,
+      "work_units": 1804,
+      "expression_hash": "3cff4c3c2e1fff526b1e48f4f051dac3477dd6122852d7990cffe42719fdbc9f"
+    },
+    {
+      "task": "absdiff",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 3,
+      "shapes": 386,
+      "candidate_evaluations": 1539,
+      "work": {
+        "primitive_subterms": 1533,
+        "primitive_predicates": 1539,
+        "subterm_representatives": 342,
+        "predicate_representatives": 39,
+        "probe_evaluations": 13827,
+        "auxiliary_scoring_steps": 11992
+      },
+      "verifier_invocations": 3,
+      "verifier_ms": 15.48,
+      "elapsed_ms": 89.83,
+      "peak_rss_mib": 66.39,
+      "work_units": 29280,
+      "expression_hash": "dcd7d0e36dedfb04085406c1396c41d1936041b5541ece5c0f03e89377947f33"
+    }
+  ],
+  "mining": {
+    "elapsed_ms": 0.39,
+    "peak_rss_mib_cumulative": 66.64,
+    "counters": {
+      "programs_seen": 3,
+      "programs_accepted": 3,
+      "subtrees_visited": 22,
+      "type_rejected": 3,
+      "unique_macros": 5,
+      "duplicate_subtrees": 14
+    },
+    "library_hash": "2aa01545f73dade574da6c8815c03287f60a54e1fccc34d52877e99d51305247",
+    "macro_inventory": {
+      "discovered_01cbdc131d2d957e": {
+        "name": "discovered_01cbdc131d2d957e",
+        "arity": 2,
+        "body": {
+          "op": "Sub",
+          "args": [
+            {
+              "op": "Arg",
+              "index": 0
+            },
+            {
+              "op": "Arg",
+              "index": 1
+            }
+          ]
+        },
+        "origin_hash": "01cbdc131d2d957efe5ec0c8590941bb5595604bd1a2509f143210bfeba01040",
+        "description": "Integer subtree reused from independently proved training program",
+        "metadata": {
+          "origin_task_ids": [
+            "absdiff"
+          ],
+          "discovery_mode": "all_typed_subtrees_no_threshold",
+          "search_usable": true
+        }
+      },
+      "discovered_2a4a39647279cef1": {
+        "name": "discovered_2a4a39647279cef1",
+        "arity": 2,
+        "body": {
+          "op": "If",
+          "args": [
+            {
+              "op": "LessThan",
+              "args": [
+                {
+                  "op": "Arg",
+                  "index": 0
+                },
+                {
+                  "op": "Arg",
+                  "index": 1
+                }
+              ]
+            },
+            {
+              "op": "Arg",
+              "index": 1
+            },
+            {
+              "op": "Arg",
+              "index": 0
+            }
+          ]
+        },
+        "origin_hash": "2a4a39647279cef199e96ec1c6c11bbdd90c3d50547067c4afed83cc883b2f43",
+        "description": "Integer subtree reused from independently proved training program",
+        "metadata": {
+          "origin_task_ids": [
+            "max2"
+          ],
+          "discovery_mode": "all_typed_subtrees_no_threshold",
+          "search_usable": true
+        }
+      },
+      "discovered_3cff4c3c2e1fff52": {
+        "name": "discovered_3cff4c3c2e1fff52",
+        "arity": 2,
+        "body": {
+          "op": "If",
+          "args": [
+            {
+              "op": "LessThan",
+              "args": [
+                {
+                  "op": "Arg",
+                  "index": 0
+                },
+                {
+                  "op": "Arg",
+                  "index": 1
+                }
+              ]
+            },
+            {
+              "op": "Arg",
+              "index": 0
+            },
+            {
+              "op": "Arg",
+              "index": 1
+            }
+          ]
+        },
+        "origin_hash": "3cff4c3c2e1fff526b1e48f4f051dac3477dd6122852d7990cffe42719fdbc9f",
+        "description": "Integer subtree reused from independently proved training program",
+        "metadata": {
+          "origin_task_ids": [
+            "min2"
+          ],
+          "discovery_mode": "all_typed_subtrees_no_threshold",
+          "search_usable": true
+        }
+      },
+      "discovered_42d5f158b2968b47": {
+        "name": "discovered_42d5f158b2968b47",
+        "arity": 1,
+        "body": {
+          "op": "Arg",
+          "index": 0
+        },
+        "origin_hash": "42d5f158b2968b4744864e9d2ccf288db3d2d4a585752a61f2156adc17a3f987",
+        "description": "Integer subtree reused from independently proved training program",
+        "metadata": {
+          "origin_task_ids": [
+            "absdiff",
+            "max2",
+            "min2"
+          ],
+          "discovery_mode": "all_typed_subtrees_no_threshold",
+          "search_usable": true
+        }
+      },
+      "discovered_834179df86cc9393": {
+        "name": "discovered_834179df86cc9393",
+        "arity": 2,
+        "body": {
+          "op": "If",
+          "args": [
+            {
+              "op": "LessThan",
+              "args": [
+                {
+                  "op": "Arg",
+                  "index": 0
+                },
+                {
+                  "op": "Arg",
+                  "index": 1
+                }
+              ]
+            },
+            {
+              "op": "Sub",
+              "args": [
+                {
+                  "op": "Arg",
+                  "index": 1
+                },
+                {
+                  "op": "Arg",
+                  "index": 0
+                }
+              ]
+            },
+            {
+              "op": "Sub",
+              "args": [
+                {
+                  "op": "Arg",
+                  "index": 0
+                },
+                {
+                  "op": "Arg",
+                  "index": 1
+                }
+              ]
+            }
+          ]
+        },
+        "origin_hash": "834179df86cc9393eb20ed862d2fa8ea1844e60d73bc4ba18ecfb5901c1d55eb",
+        "description": "Integer subtree reused from independently proved training program",
+        "metadata": {
+          "origin_task_ids": [
+            "absdiff"
+          ],
+          "discovery_mode": "all_typed_subtrees_no_threshold",
+          "search_usable": true
+        }
+      }
+    },
+    "note": "Only inherited expressions are mined; no task-name guidance"
+  },
+  "heldout": [
+    {
+      "task": "clamp3",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 1,
+      "shapes": 47,
+      "candidate_evaluations": 135,
+      "work": {
+        "primitive_subterms": 200,
+        "primitive_predicates": 198,
+        "subterm_representatives": 40,
+        "predicate_representatives": 5,
+        "probe_evaluations": 1329,
+        "auxiliary_scoring_steps": 406
+      },
+      "verifier_invocations": 1,
+      "verifier_ms": 3.53,
+      "elapsed_ms": 14.29,
+      "peak_rss_mib": 65.33,
+      "work_units": 2181,
+      "expression_hash": "33d2d15a5cba32663cbe5ea47b0b47d7f443ff7e84f9da201ec03940fc976f87",
+      "macro_count": 0,
+      "process_wall_ms": 164.43,
+      "eligible_under_work_threshold": true,
+      "seed": 0,
+      "arm": "no_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "clamp3",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 1,
+      "shapes": 99,
+      "candidate_evaluations": 297,
+      "work": {
+        "primitive_subterms": 2412,
+        "primitive_predicates": 630,
+        "subterm_representatives": 245,
+        "predicate_representatives": 6,
+        "probe_evaluations": 9333,
+        "auxiliary_scoring_steps": 0
+      },
+      "verifier_invocations": 1,
+      "verifier_ms": 3.53,
+      "elapsed_ms": 227.21,
+      "peak_rss_mib": 65.72,
+      "work_units": 12475,
+      "expression_hash": "24ca632adbe675a5bcadfaabfcdb25813e45e30e8578da4f95b0502168927c5d",
+      "macro_count": 5,
+      "process_wall_ms": 365.64,
+      "eligible_under_work_threshold": true,
+      "seed": 0,
+      "arm": "open_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "min3",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 3,
+      "shapes": 692,
+      "candidate_evaluations": 3414,
+      "work": {
+        "primitive_subterms": 28909,
+        "primitive_predicates": 7722,
+        "subterm_representatives": 3117,
+        "predicate_representatives": 50,
+        "probe_evaluations": 155722,
+        "auxiliary_scoring_steps": 0
+      },
+      "verifier_invocations": 3,
+      "verifier_ms": 15.26,
+      "elapsed_ms": 2566.8,
+      "peak_rss_mib": 67.03,
+      "work_units": 193048,
+      "expression_hash": "c038a305ff979b5461589e7876e392e37df95e7a95476121d8bcef05af3efb56",
+      "macro_count": 5,
+      "process_wall_ms": 2708.63,
+      "eligible_under_work_threshold": true,
+      "seed": 0,
+      "arm": "open_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "min3",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 6,
+      "shapes": 1643,
+      "candidate_evaluations": 9915,
+      "work": {
+        "primitive_subterms": 8340,
+        "primitive_predicates": 8370,
+        "subterm_representatives": 1716,
+        "predicate_representatives": 203,
+        "probe_evaluations": 101820,
+        "auxiliary_scoring_steps": 120442
+      },
+      "verifier_invocations": 6,
+      "verifier_ms": 22.81,
+      "elapsed_ms": 457.69,
+      "peak_rss_mib": 67.27,
+      "work_units": 240621,
+      "expression_hash": null,
+      "macro_count": 0,
+      "process_wall_ms": 607.94,
+      "eligible_under_work_threshold": false,
+      "seed": 0,
+      "arm": "no_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "max3",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 6,
+      "shapes": 1808,
+      "candidate_evaluations": 10589,
+      "work": {
+        "primitive_subterms": 8340,
+        "primitive_predicates": 8370,
+        "subterm_representatives": 1716,
+        "predicate_representatives": 244,
+        "probe_evaluations": 102494,
+        "auxiliary_scoring_steps": 291526
+      },
+      "verifier_invocations": 6,
+      "verifier_ms": 20.93,
+      "elapsed_ms": 494.11,
+      "peak_rss_mib": 67.38,
+      "work_units": 412544,
+      "expression_hash": null,
+      "macro_count": 0,
+      "process_wall_ms": 633.99,
+      "eligible_under_work_threshold": false,
+      "seed": 0,
+      "arm": "no_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "max3",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 2,
+      "shapes": 716,
+      "candidate_evaluations": 2700,
+      "work": {
+        "primitive_subterms": 18606,
+        "primitive_predicates": 4968,
+        "subterm_representatives": 1561,
+        "predicate_representatives": 20,
+        "probe_evaluations": 87129,
+        "auxiliary_scoring_steps": 0
+      },
+      "verifier_invocations": 2,
+      "verifier_ms": 9.96,
+      "elapsed_ms": 1499.81,
+      "peak_rss_mib": 66.23,
+      "work_units": 111421,
+      "expression_hash": "91492a7533a6628f6b9d13e124cfa22f2c79d42d54554471915f1100176993f8",
+      "macro_count": 5,
+      "process_wall_ms": 1643.65,
+      "eligible_under_work_threshold": true,
+      "seed": 0,
+      "arm": "open_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "max4",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 2,
+      "shapes": 185,
+      "candidate_evaluations": 516,
+      "work": {
+        "primitive_subterms": 37807,
+        "primitive_predicates": 10164,
+        "subterm_representatives": 1809,
+        "predicate_representatives": 8,
+        "probe_evaluations": 131054,
+        "auxiliary_scoring_steps": 0
+      },
+      "verifier_invocations": 2,
+      "verifier_ms": 10.05,
+      "elapsed_ms": 3026.41,
+      "peak_rss_mib": 66.42,
+      "work_units": 179212,
+      "expression_hash": null,
+      "macro_count": 5,
+      "process_wall_ms": 3180.32,
+      "eligible_under_work_threshold": false,
+      "seed": 0,
+      "arm": "open_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "max4",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 6,
+      "shapes": 3272,
+      "candidate_evaluations": 16332,
+      "work": {
+        "primitive_subterms": 17472,
+        "primitive_predicates": 17523,
+        "subterm_representatives": 3301,
+        "predicate_representatives": 165,
+        "probe_evaluations": 179337,
+        "auxiliary_scoring_steps": 206724
+      },
+      "verifier_invocations": 6,
+      "verifier_ms": 23.72,
+      "elapsed_ms": 923.35,
+      "peak_rss_mib": 66.53,
+      "work_units": 424334,
+      "expression_hash": null,
+      "macro_count": 0,
+      "process_wall_ms": 1075.7,
+      "eligible_under_work_threshold": false,
+      "seed": 0,
+      "arm": "no_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "median3",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 6,
+      "shapes": 1672,
+      "candidate_evaluations": 10091,
+      "work": {
+        "primitive_subterms": 8340,
+        "primitive_predicates": 8370,
+        "subterm_representatives": 1716,
+        "predicate_representatives": 223,
+        "probe_evaluations": 101996,
+        "auxiliary_scoring_steps": 183404
+      },
+      "verifier_invocations": 6,
+      "verifier_ms": 24.89,
+      "elapsed_ms": 484.67,
+      "peak_rss_mib": 67.36,
+      "work_units": 303788,
+      "expression_hash": null,
+      "macro_count": 0,
+      "process_wall_ms": 669.6,
+      "eligible_under_work_threshold": false,
+      "seed": 0,
+      "arm": "no_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "median3",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 3,
+      "shapes": 1462,
+      "candidate_evaluations": 6589,
+      "work": {
+        "primitive_subterms": 35481,
+        "primitive_predicates": 9498,
+        "subterm_representatives": 4213,
+        "predicate_representatives": 50,
+        "probe_evaluations": 193705,
+        "auxiliary_scoring_steps": 0
+      },
+      "verifier_invocations": 3,
+      "verifier_ms": 14.14,
+      "elapsed_ms": 3465.7,
+      "peak_rss_mib": 67.0,
+      "work_units": 240149,
+      "expression_hash": null,
+      "macro_count": 5,
+      "process_wall_ms": 3627.91,
+      "eligible_under_work_threshold": false,
+      "seed": 0,
+      "arm": "open_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "clamp3",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 1,
+      "shapes": 99,
+      "candidate_evaluations": 297,
+      "work": {
+        "primitive_subterms": 2412,
+        "primitive_predicates": 630,
+        "subterm_representatives": 245,
+        "predicate_representatives": 6,
+        "probe_evaluations": 9333,
+        "auxiliary_scoring_steps": 0
+      },
+      "verifier_invocations": 1,
+      "verifier_ms": 4.16,
+      "elapsed_ms": 233.63,
+      "peak_rss_mib": 65.73,
+      "work_units": 12475,
+      "expression_hash": "24ca632adbe675a5bcadfaabfcdb25813e45e30e8578da4f95b0502168927c5d",
+      "macro_count": 5,
+      "process_wall_ms": 397.6,
+      "eligible_under_work_threshold": true,
+      "seed": 1,
+      "arm": "open_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "clamp3",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 1,
+      "shapes": 47,
+      "candidate_evaluations": 135,
+      "work": {
+        "primitive_subterms": 200,
+        "primitive_predicates": 198,
+        "subterm_representatives": 40,
+        "predicate_representatives": 5,
+        "probe_evaluations": 1329,
+        "auxiliary_scoring_steps": 406
+      },
+      "verifier_invocations": 1,
+      "verifier_ms": 3.17,
+      "elapsed_ms": 14.26,
+      "peak_rss_mib": 65.78,
+      "work_units": 2181,
+      "expression_hash": "33d2d15a5cba32663cbe5ea47b0b47d7f443ff7e84f9da201ec03940fc976f87",
+      "macro_count": 0,
+      "process_wall_ms": 160.5,
+      "eligible_under_work_threshold": true,
+      "seed": 1,
+      "arm": "no_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "median3",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 6,
+      "shapes": 1672,
+      "candidate_evaluations": 10091,
+      "work": {
+        "primitive_subterms": 8340,
+        "primitive_predicates": 8370,
+        "subterm_representatives": 1716,
+        "predicate_representatives": 223,
+        "probe_evaluations": 101996,
+        "auxiliary_scoring_steps": 183404
+      },
+      "verifier_invocations": 6,
+      "verifier_ms": 27.22,
+      "elapsed_ms": 496.34,
+      "peak_rss_mib": 67.38,
+      "work_units": 303788,
+      "expression_hash": null,
+      "macro_count": 0,
+      "process_wall_ms": 653.53,
+      "eligible_under_work_threshold": false,
+      "seed": 1,
+      "arm": "no_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "median3",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 3,
+      "shapes": 1462,
+      "candidate_evaluations": 6589,
+      "work": {
+        "primitive_subterms": 35481,
+        "primitive_predicates": 9498,
+        "subterm_representatives": 4213,
+        "predicate_representatives": 50,
+        "probe_evaluations": 193705,
+        "auxiliary_scoring_steps": 0
+      },
+      "verifier_invocations": 3,
+      "verifier_ms": 15.27,
+      "elapsed_ms": 3425.02,
+      "peak_rss_mib": 67.0,
+      "work_units": 240149,
+      "expression_hash": null,
+      "macro_count": 5,
+      "process_wall_ms": 3570.55,
+      "eligible_under_work_threshold": false,
+      "seed": 1,
+      "arm": "open_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "max4",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 2,
+      "shapes": 185,
+      "candidate_evaluations": 516,
+      "work": {
+        "primitive_subterms": 37807,
+        "primitive_predicates": 10164,
+        "subterm_representatives": 1809,
+        "predicate_representatives": 8,
+        "probe_evaluations": 131054,
+        "auxiliary_scoring_steps": 0
+      },
+      "verifier_invocations": 2,
+      "verifier_ms": 11.31,
+      "elapsed_ms": 2851.44,
+      "peak_rss_mib": 66.67,
+      "work_units": 179212,
+      "expression_hash": null,
+      "macro_count": 5,
+      "process_wall_ms": 2999.99,
+      "eligible_under_work_threshold": false,
+      "seed": 1,
+      "arm": "open_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "max4",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 6,
+      "shapes": 3272,
+      "candidate_evaluations": 16332,
+      "work": {
+        "primitive_subterms": 17472,
+        "primitive_predicates": 17523,
+        "subterm_representatives": 3301,
+        "predicate_representatives": 165,
+        "probe_evaluations": 179337,
+        "auxiliary_scoring_steps": 206724
+      },
+      "verifier_invocations": 6,
+      "verifier_ms": 21.46,
+      "elapsed_ms": 859.71,
+      "peak_rss_mib": 66.77,
+      "work_units": 424334,
+      "expression_hash": null,
+      "macro_count": 0,
+      "process_wall_ms": 1001.76,
+      "eligible_under_work_threshold": false,
+      "seed": 1,
+      "arm": "no_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "max3",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 6,
+      "shapes": 1808,
+      "candidate_evaluations": 10589,
+      "work": {
+        "primitive_subterms": 8340,
+        "primitive_predicates": 8370,
+        "subterm_representatives": 1716,
+        "predicate_representatives": 244,
+        "probe_evaluations": 102494,
+        "auxiliary_scoring_steps": 291526
+      },
+      "verifier_invocations": 6,
+      "verifier_ms": 25.82,
+      "elapsed_ms": 544.4,
+      "peak_rss_mib": 67.77,
+      "work_units": 412544,
+      "expression_hash": null,
+      "macro_count": 0,
+      "process_wall_ms": 688.7,
+      "eligible_under_work_threshold": false,
+      "seed": 1,
+      "arm": "no_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "max3",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 2,
+      "shapes": 716,
+      "candidate_evaluations": 2700,
+      "work": {
+        "primitive_subterms": 18606,
+        "primitive_predicates": 4968,
+        "subterm_representatives": 1561,
+        "predicate_representatives": 20,
+        "probe_evaluations": 87129,
+        "auxiliary_scoring_steps": 0
+      },
+      "verifier_invocations": 2,
+      "verifier_ms": 10.24,
+      "elapsed_ms": 1497.89,
+      "peak_rss_mib": 66.39,
+      "work_units": 111421,
+      "expression_hash": "91492a7533a6628f6b9d13e124cfa22f2c79d42d54554471915f1100176993f8",
+      "macro_count": 5,
+      "process_wall_ms": 1636.99,
+      "eligible_under_work_threshold": true,
+      "seed": 1,
+      "arm": "open_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "min3",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 3,
+      "shapes": 692,
+      "candidate_evaluations": 3414,
+      "work": {
+        "primitive_subterms": 28909,
+        "primitive_predicates": 7722,
+        "subterm_representatives": 3117,
+        "predicate_representatives": 50,
+        "probe_evaluations": 155722,
+        "auxiliary_scoring_steps": 0
+      },
+      "verifier_invocations": 3,
+      "verifier_ms": 13.61,
+      "elapsed_ms": 2462.92,
+      "peak_rss_mib": 66.8,
+      "work_units": 193048,
+      "expression_hash": "c038a305ff979b5461589e7876e392e37df95e7a95476121d8bcef05af3efb56",
+      "macro_count": 5,
+      "process_wall_ms": 2608.73,
+      "eligible_under_work_threshold": true,
+      "seed": 1,
+      "arm": "open_inheritance",
+      "category": "heldout"
+    },
+    {
+      "task": "min3",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 6,
+      "shapes": 1643,
+      "candidate_evaluations": 9915,
+      "work": {
+        "primitive_subterms": 8340,
+        "primitive_predicates": 8370,
+        "subterm_representatives": 1716,
+        "predicate_representatives": 203,
+        "probe_evaluations": 101820,
+        "auxiliary_scoring_steps": 120442
+      },
+      "verifier_invocations": 6,
+      "verifier_ms": 20.28,
+      "elapsed_ms": 453.99,
+      "peak_rss_mib": 67.48,
+      "work_units": 240621,
+      "expression_hash": null,
+      "macro_count": 0,
+      "process_wall_ms": 610.05,
+      "eligible_under_work_threshold": false,
+      "seed": 1,
+      "arm": "no_inheritance",
+      "category": "heldout"
+    }
+  ],
+  "stress": [
+    {
+      "task": "clamp3",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 1,
+      "shapes": 47,
+      "candidate_evaluations": 135,
+      "work": {
+        "primitive_subterms": 200,
+        "primitive_predicates": 198,
+        "subterm_representatives": 40,
+        "predicate_representatives": 5,
+        "probe_evaluations": 1329,
+        "auxiliary_scoring_steps": 406
+      },
+      "verifier_invocations": 1,
+      "verifier_ms": 3.4,
+      "elapsed_ms": 15.13,
+      "peak_rss_mib": 65.38,
+      "work_units": 2181,
+      "expression_hash": "33d2d15a5cba32663cbe5ea47b0b47d7f443ff7e84f9da201ec03940fc976f87",
+      "macro_count": 0,
+      "process_wall_ms": 163.36,
+      "eligible_under_work_threshold": true,
+      "seed": 0,
+      "arm": "no_inheritance",
+      "category": "stress"
+    },
+    {
+      "task": "clamp3",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+      "iterations": 1,
+      "shapes": 119,
+      "candidate_evaluations": 351,
+      "work": {
+        "primitive_subterms": 8610,
+        "primitive_predicates": 1053,
+        "subterm_representatives": 112,
+        "predicate_representatives": 5,
+        "probe_evaluations": 18282,
+        "auxiliary_scoring_steps": 700
+      },
+      "verifier_invocations": 1,
+      "verifier_ms": 3.92,
+      "elapsed_ms": 713.05,
+      "peak_rss_mib": 65.52,
+      "work_units": 28765,
+      "expression_hash": "33d2d15a5cba32663cbe5ea47b0b47d7f443ff7e84f9da201ec03940fc976f87",
+      "macro_count": 20,
+      "process_wall_ms": 858.49,
+      "eligible_under_work_threshold": true,
+      "seed": 0,
+      "arm": "20_distractors",
+      "category": "stress"
+    },
+    {
+      "task": "sum5",
+      "status": "EXHAUSTED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 5,
+      "shapes": 5135,
+      "candidate_evaluations": 27520,
+      "work": {
+        "primitive_subterms": 27223,
+        "primitive_predicates": 27297,
+        "subterm_representatives": 4901,
+        "predicate_representatives": 210,
+        "probe_evaluations": 311880,
+        "auxiliary_scoring_steps": 3095950
+      },
+      "verifier_invocations": 5,
+      "verifier_ms": 24.17,
+      "elapsed_ms": 2298.59,
+      "peak_rss_mib": 67.09,
+      "work_units": 3467490,
+      "expression_hash": null,
+      "macro_count": 0,
+      "process_wall_ms": 2442.98,
+      "eligible_under_work_threshold": false,
+      "seed": 0,
+      "arm": "no_inheritance",
+      "category": "stress"
+    },
+    {
+      "task": "sum5",
+      "status": "TIMEOUT",
+      "proof": null,
+      "elapsed_ms": 7003.59,
+      "work_units": null,
+      "work": null,
+      "verifier_invocations": null,
+      "verifier_ms": null,
+      "peak_rss_mib": null,
+      "macro_count": 20,
+      "note": "Worker terminated; partial counters unavailable",
+      "eligible_under_work_threshold": false,
+      "seed": 0,
+      "arm": "20_distractors",
+      "category": "stress"
+    },
+    {
+      "task": "sum8",
+      "status": "SYNTHESIS_FAILED",
+      "proof": null,
+      "proof_scope": null,
+      "iterations": 1,
+      "shapes": 0,
+      "candidate_evaluations": 0,
+      "work": {
+        "primitive_subterms": 7869,
+        "primitive_predicates": 7884,
+        "subterm_representatives": 582,
+        "predicate_representatives": 6,
+        "probe_evaluations": 49023,
+        "auxiliary_scoring_steps": 50388
+      },
+      "verifier_invocations": 0,
+      "verifier_ms": 0.0,
+      "elapsed_ms": 265.57,
+      "peak_rss_mib": 44.72,
+      "work_units": 115164,
+      "expression_hash": null,
+      "macro_count": 0,
+      "process_wall_ms": 413.94,
+      "eligible_under_work_threshold": false,
+      "seed": 0,
+      "arm": "no_inheritance",
+      "category": "stress"
+    },
+    {
+      "task": "sum8",
+      "status": "TIMEOUT",
+      "proof": null,
+      "elapsed_ms": 7004.32,
+      "work_units": null,
+      "work": null,
+      "verifier_invocations": null,
+      "verifier_ms": null,
+      "peak_rss_mib": null,
+      "macro_count": 20,
+      "note": "Worker terminated; partial counters unavailable",
+      "eligible_under_work_threshold": false,
+      "seed": 0,
+      "arm": "20_distractors",
+      "category": "stress"
+    }
+  ],
+  "interpretation_notes": [
+    "Small, related exploratory task sample; no causal or generalization claim",
+    "Common work index threshold is post-execution, not a hard resource governor",
+    "Wall-time limit is hard per worker; interrupted work counters are unavailable",
+    "The five observed work categories are reported separately from Z3 solver latency",
+    "Whole proved programs and all typed subtrees are eligible regardless of utility",
+    "The base CIN generator currently consumes unary/binary macros only"
+  ]
+}

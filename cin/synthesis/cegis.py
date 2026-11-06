@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from .decision import DecisionResult, synthesize_conditional_tree
+from .decision import DecisionResult, SynthesisWork, synthesize_conditional_tree
 from .library import MacroRegistry
 from .sygus import SyGuSTask
 from .z3_verifier import HAS_Z3, Z3Verdict, verify_spec_with_z3
@@ -32,6 +32,8 @@ class CEGISResult:
     z3_verdict: Z3Verdict | None = None
     ast_nodes: int = 0
     ast_depth: int = 0
+    verifier_invocations: int = 0
+    verifier_elapsed_ms: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -46,6 +48,8 @@ class CEGISResult:
             "z3_verdict": self.z3_verdict.to_dict() if self.z3_verdict else None,
             "ast_nodes": self.ast_nodes,
             "ast_depth": self.ast_depth,
+            "verifier_invocations": self.verifier_invocations,
+            "verifier_elapsed_ms": self.verifier_elapsed_ms,
         }
 
 
@@ -56,6 +60,7 @@ def run_cegis_loop(
     macro_registry: MacroRegistry | None = None,
     max_rounds: int = 15,
     timeout_sec: float = 30.0,
+    work: SynthesisWork | None = None,
 ) -> CEGISResult:
     """Executes a full CEGIS loop for a given SyGuS task using Z3.
 
@@ -125,6 +130,8 @@ def run_cegis_loop(
     total_shapes = 0
     total_evals = 0
     rounds_started = 0
+    verifier_invocations = 0
+    verifier_elapsed_ms = 0.0
 
     for rnd in range(1, max_rounds + 1):
         if time.perf_counter() - t0 > timeout_sec:
@@ -141,6 +148,7 @@ def run_cegis_loop(
             target_outputs,
             base,
             macro_registry=macro_registry,
+            work=work,
         )
 
         if res is None:
@@ -153,6 +161,8 @@ def run_cegis_loop(
                 total_shapes_attempted=total_shapes,
                 total_evaluations=total_evals,
                 elapsed_ms=elapsed,
+                verifier_invocations=verifier_invocations,
+                verifier_elapsed_ms=verifier_elapsed_ms,
             )
 
         total_shapes += res.shapes_attempted
@@ -160,6 +170,7 @@ def run_cegis_loop(
         candidate_expr = res.expression
 
         # Formal Verification Phase: Query Z3 across unbounded Z^k
+        verifier_started = time.perf_counter()
         z3_verdict = verify_spec_with_z3(
             candidate_expr,
             task.z3_spec,
@@ -167,6 +178,8 @@ def run_cegis_loop(
             var_names=task.variable_names,
             precondition=task.precondition,
         )
+        verifier_invocations += 1
+        verifier_elapsed_ms += (time.perf_counter() - verifier_started) * 1000
 
         # Condition 1: Formally Proved
         if z3_verdict.status == "SYMBOLIC_PROVED":
@@ -182,6 +195,8 @@ def run_cegis_loop(
                 z3_verdict=z3_verdict,
                 ast_nodes=res.nodes,
                 ast_depth=res.depth,
+                verifier_invocations=verifier_invocations,
+                verifier_elapsed_ms=verifier_elapsed_ms,
             )
 
         # Condition 2: Counterexample found
@@ -205,4 +220,6 @@ def run_cegis_loop(
         total_shapes_attempted=total_shapes,
         total_evaluations=total_evals,
         elapsed_ms=elapsed,
+        verifier_invocations=verifier_invocations,
+        verifier_elapsed_ms=verifier_elapsed_ms,
     )
