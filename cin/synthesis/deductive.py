@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from cin.ir import IRViolation, Limits, run_ir_args
-from cin.worlds import check_formula
+from cin.worlds import _ordered_input_names, check_formula
 
 
 @dataclass(frozen=True)
@@ -24,6 +24,10 @@ class Interval:
 
     def intersects(self, other: Interval) -> bool:
         return not (self.max_val < other.min_val or other.max_val < self.min_val)
+
+
+class SampledTargetSet(set[int]):
+    """Observed target values within a finite search window, not a complete set."""
 
 
 @dataclass
@@ -45,11 +49,11 @@ def compute_relational_target_sets(
     Supports general relational specifications (multiple valid target outputs).
     """
     post = world["postcondition"]
-    var_names = list(world["input_domain"].keys())
+    var_names = _ordered_input_names(world)
     target_sets: list[set[int]] = []
 
     for pt in cases:
-        valid_values: set[int] = set()
+        valid_values: set[int] = SampledTargetSet()
         values = {k: v for k, v in zip(var_names, pt)}
         for candidate_val in range(search_range[0], search_range[1] + 1):
             values["result"] = candidate_val
@@ -139,10 +143,17 @@ def deductive_filter_binary_pairs(
     if not target_sets:
         return []
 
-    # Compute overall target interval
+    # Finite output sampling cannot certify that an unobserved value is invalid.
+    # Retain every pair unless every target set was supplied as an exact set.
+    if any(isinstance(targets, SampledTargetSet) or not targets for targets in target_sets):
+        all_pairs = [(left, right) for left in left_terms for right in right_terms]
+        if stats is not None:
+            stats.pairs_screened += len(all_pairs)
+            stats.retained_pairs += len(all_pairs)
+        return all_pairs
+
+    # Exact target sets supplied by the caller permit interval-based pruning.
     all_targets = set.union(*target_sets)
-    if not all_targets:
-        return []
     target_interval = Interval(min(all_targets), max(all_targets))
 
     # Precompute intervals for terms

@@ -112,7 +112,16 @@ def verify_spec_with_z3(
             explanation="z3-solver is not available",
         )
 
-    names = var_names or [f"x_{i}" for i in range(arity)]
+    if arity < 1 or (
+        var_names is not None and (len(var_names) != arity or len(set(var_names)) != arity)
+    ):
+        return Z3Verdict(
+            status="UNKNOWN",
+            proof_scope=PROOF_SCOPE_Z3,
+            explanation="Variable names must be unique and match the declared input arity",
+        )
+
+    names = var_names if var_names is not None else [f"x_{i}" for i in range(arity)]
     z3_vars = [z3.Int(names[i]) for i in range(arity)]
 
     try:

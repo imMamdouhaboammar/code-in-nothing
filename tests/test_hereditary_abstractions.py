@@ -78,6 +78,41 @@ class TestAntiUnification:
         assert len(substitutions) == 1
         assert substitutions[0] == ({"op": "Arg", "index": 0}, {"op": "Arg", "index": 1})
 
+    def test_shared_arg_does_not_collide_with_generated_hole(self):
+        first = {
+            "op": "Add",
+            "args": [
+                {"op": "Arg", "index": 0},
+                {"op": "Arg", "index": 1},
+            ],
+        }
+        second = {
+            "op": "Add",
+            "args": [
+                {"op": "Arg", "index": 0},
+                {"op": "Arg", "index": 2},
+            ],
+        }
+        template, substitutions = anti_unify(first, second)
+        assert len(substitutions) == 2
+        registry = MacroRegistry(
+            {
+                "pattern": Macro(
+                    "pattern",
+                    len(substitutions),
+                    template,
+                    canonical_hash(template),
+                )
+            }
+        )
+        for original, side in ((first, 0), (second, 1)):
+            call = {
+                "op": "CallMacro",
+                "macro": "pattern",
+                "args": [pair[side] for pair in substitutions],
+            }
+            assert registry.desugar(call) == original
+
     def test_isomorphic_conditionals_unify(self):
         # max2(x, y) vs max2(y, z)
         t1 = deepcopy(MAX2_IR)
@@ -126,6 +161,17 @@ class TestMacroRegistry:
         }
         assert desugared == expected
         check_tree(desugared, BASE_2D)
+
+    def test_negative_macro_hole_index_cannot_match(self):
+        invalid = Macro(
+            name="invalid",
+            arity=1,
+            body={"op": "Arg", "index": -1},
+            origin_hash="invalid-negative-index",
+        )
+        registry = MacroRegistry({"invalid": invalid})
+        expression = {"op": "Arg", "index": 0}
+        assert registry.sugar(expression) == expression
 
     def test_nested_macro_desugaring(self):
         registry = MacroRegistry()

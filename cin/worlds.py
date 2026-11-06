@@ -23,7 +23,7 @@ class WorldViolation(ValueError):
 class Verdict:
     status: str
     checked: int
-    counterexample: tuple[int, int] | None = None
+    counterexample: tuple[int, ...] | None = None
     reason: str = ""
     operations: int = 0
 
@@ -79,9 +79,17 @@ def check_formula(formula: dict, values: dict) -> bool:
     raise WorldViolation("unknown formula operator")
 
 
+def _ordered_input_names(world: dict) -> list[str]:
+    """Preserve the fixed positional contract of legacy x/y worlds."""
+    domain = world["input_domain"]
+    if world.get("api_version") == "cin.world/v0.1" and set(domain) == {"x", "y"}:
+        return ["x", "y"]
+    return list(domain.keys())
+
+
 def _inputs(world, max_cases: int):
     domain = world["input_domain"]
-    var_names = list(domain.keys())
+    var_names = _ordered_input_names(world)
     ranges = [range(domain[k]["min"], domain[k]["max"] + 1) for k in var_names]
     count = 1
     for r in ranges:
@@ -113,7 +121,7 @@ def verify_program(
         return Verdict("INVALID", 0, reason=str(exc))
     checked = 0
     ops = [0]
-    var_names = list(world["input_domain"].keys())
+    var_names = _ordered_input_names(world)
     arity = len(var_names)
     for point in points:
         values = {k: v for k, v in zip(var_names, point)}
@@ -146,7 +154,7 @@ def admit_world(
         validate_world(world)
         _require_matching_signature(world, base)
         points = list(_inputs(world, max_cases))
-        var_names = list(world["input_domain"].keys())
+        var_names = _ordered_input_names(world)
         if not any(
             check_formula(
                 world["precondition"], {**{k: v for k, v in zip(var_names, pt)}, "result": 0}

@@ -11,7 +11,94 @@ from cin.synthesis import (
     generate_candidate_predicates,
     synthesize_conditional_tree,
 )
+from cin.synthesis.decision import SynthesisWork
 from cin.worlds import verify_program
+
+
+def test_high_arity_stress_probes_vary_each_input_independently():
+    from experiments.adversarial_harness import make_high_arity_cases
+
+    cases = make_high_arity_cases(8)
+    assert len(cases) >= 24
+    assert all(len(case) == 8 for case in cases)
+    for axis in range(8):
+        assert len({case[axis] for case in cases}) >= 3
+    assert any(len(set(case)) > 1 for case in cases)
+
+
+def test_decision_benchmark_json_contains_actual_cost_accounting():
+    from experiments.run_decision_synthesis import run_decision_experiments
+
+    report = run_decision_experiments()
+    assert len(report["results"]) == 3
+    for row in report["results"]:
+        assert row["primitive_subterms"] > 0
+        assert row["primitive_predicates"] > 0
+        assert row["probe_evaluations"] > 0
+        assert row["auxiliary_scoring_steps"] >= 0
+        assert row["verifier_calls"] in (0, 1)
+        assert row["verifier_time_ms"] >= 0
+        assert row["wall_clock_ms"] >= 0
+        assert row["process_peak_rss_kb"] > 0
+        assert "naive_search_shapes" not in row
+
+
+def test_adversarial_harness_reports_measured_generation_work():
+    from experiments.adversarial_harness import instrumented_synthesize
+
+    base = dict(load_genome("examples/seed-genome.v0.1.yaml")["genome"]["base"])
+    world = load_world("examples/world-min2.v0.1.yaml")
+    _, cost = instrumented_synthesize(world, base, timeout_sec=5)
+    assert cost.primitive_subterms > 0
+    assert cost.primitive_predicates > 0
+    assert cost.probe_evaluations >= cost.primitive_subterms
+    assert cost.auxiliary_scoring_steps >= 0
+
+
+def test_generation_work_counts_candidates_before_observational_pruning():
+    base = dict(load_genome("examples/seed-genome.v0.1.yaml")["genome"]["base"])
+    work = SynthesisWork()
+    cases = tuple(product((-1, 0, 1), repeat=2))
+    result = synthesize_conditional_tree(cases, tuple(max(x, y) for x, y in cases), base, work=work)
+    assert result is not None
+    assert work.primitive_subterms > 0
+    assert work.primitive_predicates > 0
+    assert work.probe_evaluations >= result.candidate_evaluations
+    assert work.primitive_subterms >= work.subterm_representatives
+    assert work.primitive_predicates >= work.predicate_representatives
+
+
+def test_induction_backtracks_when_highest_scoring_split_is_unsolvable():
+    genome = load_genome("examples/seed-genome.v0.1.yaml")
+    base = dict(genome["genome"]["base"])
+    base["cin_ir_version"] = "0.2"
+    base["input_types"] = ["Int"]
+    base["max_ast_depth"] = 5
+    base["max_ast_nodes"] = 30
+    base["allowed_constants"] = [0, 1, 2, 3]
+    arg = {"op": "Arg", "index": 0}
+
+    def const(value):
+        return {"op": "ConstInt", "value": value}
+
+    preds = [
+        {"op": "Equal", "args": [arg, const(0)]},
+        {"op": "LessThan", "args": [arg, const(2)]},
+        {"op": "LessThan", "args": [arg, const(3)]},
+    ]
+    cases = tuple((x,) for x in range(6))
+    targets = (2, 0, 1, 0, 0, 0)
+    result = synthesize_conditional_tree(
+        cases,
+        targets,
+        base,
+        subterms=[const(0), const(1), const(2)],
+        predicates=preds,
+        max_tree_depth=4,
+    )
+    assert result is not None
+    for case, expected in zip(cases, targets):
+        assert run_ir_args(result.expression, case, Limits(), expected_arity=1) == expected
 
 
 def test_synthesize_max2():
@@ -142,3 +229,66 @@ def test_generate_predicates_filters_trivial():
     for p in preds:
         args = p["args"]
         assert args[0] != args[1]
+
+
+def test_max_tree_depth_limits_direct_arithmetic():
+    genome = load_genome("examples/seed-genome.v0.1.yaml")
+    base = dict(genome["genome"]["base"])
+    cases = ((1, 2), (3, 4), (5, 6))
+    arg0, arg1 = {"op": "Arg", "index": 0}, {"op": "Arg", "index": 1}
+    addition = {"op": "Add", "args": [arg0, arg1]}
+    result = synthesize_conditional_tree(
+        cases,
+        (3, 7, 11),
+        base,
+        subterms=[arg0, arg1, addition],
+        predicates=[],
+        max_tree_depth=1,
+    )
+    assert result is None
+
+
+def test_world_precondition_excludes_invalid_cases_before_routing():
+    base = dict(load_genome("examples/seed-genome.v0.1.yaml")["genome"]["base"])
+    arg0 = {"op": "Arg", "index": 0}
+    world = {
+        "input_domain": {"x": {"min": -1, "max": 0}, "y": {"min": 0, "max": 1}},
+        "precondition": {"gte": ["x", 0]},
+        "postcondition": {"eq": ["result", 0]},
+    }
+    result = synthesize_conditional_tree(
+        ((-1, 1), (0, 1)),
+        world,
+        base,
+        subterms=[arg0],
+        predicates=[],
+    )
+    assert result is not None
+    assert result.expression == arg0
+
+
+def test_missing_nested_macro_does_not_crash_subterm_generation():
+    from cin.synthesis.decision import generate_candidate_subterms
+    from cin.synthesis.library import Macro, MacroRegistry
+
+    bad = Macro(
+        name="bad",
+        arity=1,
+        body={
+            "op": "CallMacro",
+            "macro": "missing",
+            "args": [
+                {"op": "Arg", "index": 0},
+            ],
+        },
+        origin_hash="adversarial-test",
+    )
+    terms = generate_candidate_subterms(
+        arity=2,
+        allowed={"Arg", "Add"},
+        constants=[],
+        probe_cases=((1, 2), (3, 4)),
+        max_depth=2,
+        macro_registry=MacroRegistry({"bad": bad}),
+    )
+    assert {"op": "Arg", "index": 0} in terms

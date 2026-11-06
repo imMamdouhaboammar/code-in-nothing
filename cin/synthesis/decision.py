@@ -2,7 +2,8 @@
 
 Decouples control flow (predicates) from data operations (subterms) via
 observational coverage partitioning and decision tree induction.
-Prevents combinatorial explosion O(B^d) when generating conditional ASTs.
+Reuses observational signatures and explores a bounded set of decision partitions.
+Worst-case search remains combinatorial; no polynomial-time guarantee is implied.
 """
 
 from __future__ import annotations
@@ -11,7 +12,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from cin.ir import IRViolation, Limits, canonical_hash, check_tree, run_ir_args
-from cin.worlds import check_formula
+from cin.worlds import _ordered_input_names, check_formula
 
 
 def _size_depth(node: dict) -> tuple[int, int]:
@@ -34,6 +35,18 @@ class DecisionResult:
     shapes_attempted: int
 
 
+@dataclass
+class SynthesisWork:
+    """Actual search work counters, including discarded program candidates."""
+
+    primitive_subterms: int = 0
+    primitive_predicates: int = 0
+    subterm_representatives: int = 0
+    predicate_representatives: int = 0
+    probe_evaluations: int = 0
+    auxiliary_scoring_steps: int = 0
+
+
 def generate_candidate_subterms(
     arity: int,
     allowed: set[str],
@@ -42,6 +55,7 @@ def generate_candidate_subterms(
     max_depth: int = 3,
     limits: Limits = Limits(),
     macro_registry: Any | None = None,
+    work: SynthesisWork | None = None,
 ) -> list[dict]:
     """Generate arithmetic subterms with observational equivalence pruning."""
     leaves: list[dict] = []
@@ -57,18 +71,26 @@ def generate_candidate_subterms(
     def try_add(expr: dict, depth: int) -> bool:
         if depth > max_depth:
             return False
+        if work is not None:
+            work.primitive_subterms += 1
         try:
             eval_expr = macro_registry.desugar(expr) if macro_registry is not None else expr
-            sig = tuple(
-                run_ir_args(eval_expr, pt, limits, expected_arity=arity) for pt in probe_cases
-            )
+
+            def eval_probe(pt: tuple[int, ...]) -> int:
+                if work is not None:
+                    work.probe_evaluations += 1
+                return run_ir_args(eval_expr, pt, limits, expected_arity=arity)
+
+            sig = tuple(eval_probe(pt) for pt in probe_cases)
             if sig not in bank:
                 bank[sig] = expr
+                if work is not None:
+                    work.subterm_representatives += 1
                 return True
             existing = bank[sig]
             if _size_depth(expr)[0] < _size_depth(existing)[0]:
                 bank[sig] = expr
-        except IRViolation:
+        except (IRViolation, ValueError):
             return False
         return False
 
@@ -141,6 +163,7 @@ def generate_candidate_predicates(
     arity: int,
     limits: Limits = Limits(),
     macro_registry: Any | None = None,
+    work: SynthesisWork | None = None,
 ) -> list[dict]:
     """Generate boolean atomic comparison predicates with observational pruning."""
     comparison_ops = [op for op in ("LessThan", "Equal") if op in allowed]
@@ -155,22 +178,29 @@ def generate_candidate_predicates(
                 if op == "Equal" and i > j:
                     continue
                 pred = {"op": op, "args": [left, right]}
+                if work is not None:
+                    work.primitive_predicates += 1
                 try:
                     eval_pred = macro_registry.desugar(pred) if macro_registry is not None else pred
-                    sig = tuple(
-                        bool(run_ir_args(eval_pred, pt, limits, expected_arity=arity))
-                        for pt in probe_cases
-                    )
+
+                    def eval_probe(pt: tuple[int, ...]) -> bool:
+                        if work is not None:
+                            work.probe_evaluations += 1
+                        return bool(run_ir_args(eval_pred, pt, limits, expected_arity=arity))
+
+                    sig = tuple(eval_probe(pt) for pt in probe_cases)
                     # Filter out vacuous/trivial predicates that never branch
                     if all(sig) or not any(sig):
                         continue
                     if sig not in bank:
                         bank[sig] = pred
+                        if work is not None:
+                            work.predicate_representatives += 1
                     else:
                         existing = bank[sig]
                         if _size_depth(pred)[0] < _size_depth(existing)[0]:
                             bank[sig] = pred
-                except IRViolation:
+                except (IRViolation, ValueError):
                     continue
 
     return list(bank.values())
@@ -185,6 +215,7 @@ def synthesize_conditional_tree(
     predicates: list[dict] | None = None,
     max_tree_depth: int | None = None,
     macro_registry: Any | None = None,
+    work: SynthesisWork | None = None,
 ) -> DecisionResult | None:
     """Synthesize a verified conditional AST via information-theoretic branch decoupling.
 
@@ -207,11 +238,31 @@ def synthesize_conditional_tree(
     allowed = set(base["allowed_primitives"])
     constants = base.get("allowed_constants", [0, 1])
     arity = len(base.get("input_types", ("Int", "Int")))
+    if isinstance(target_spec, dict) and "postcondition" in target_spec:
+        domain = target_spec.get("input_domain", {})
+        var_names = (
+            _ordered_input_names(target_spec) if domain else [f"arg{i}" for i in range(arity)]
+        )
+        precondition = target_spec.get("precondition")
+        if precondition is not None:
+            cases = tuple(
+                pt
+                for pt in cases
+                if check_formula(
+                    precondition,
+                    {**dict(zip(var_names, pt)), "result": 0},
+                )
+            )
+            if not cases:
+                return None
+
     limits = Limits(
         max_depth=base["max_ast_depth"],
         max_nodes=base["max_ast_nodes"],
     )
-    effective_max_depth = max_tree_depth or base["max_ast_depth"]
+    effective_max_depth = base["max_ast_depth"] if max_tree_depth is None else max_tree_depth
+    if effective_max_depth < 1:
+        return None
 
     if subterms is None:
         subterms = generate_candidate_subterms(
@@ -222,13 +273,20 @@ def synthesize_conditional_tree(
             max_depth=3,
             limits=limits,
             macro_registry=macro_registry,
+            work=work,
         )
 
     atomic_terms = [t for t in subterms if _size_depth(t)[1] <= 2]
 
     if predicates is None and "If" in allowed:
         predicates = generate_candidate_predicates(
-            atomic_terms, allowed, cases, arity, limits=limits, macro_registry=macro_registry
+            atomic_terms,
+            allowed,
+            cases,
+            arity,
+            limits=limits,
+            macro_registry=macro_registry,
+            work=work,
         )
     elif predicates is None:
         predicates = []
@@ -249,7 +307,9 @@ def synthesize_conditional_tree(
     elif isinstance(target_spec, dict) and "postcondition" in target_spec:
         post = target_spec["postcondition"]
         domain = target_spec.get("input_domain", {})
-        var_names = list(domain.keys()) if domain else [f"arg{i}" for i in range(arity)]
+        var_names = (
+            _ordered_input_names(target_spec) if domain else [f"arg{i}" for i in range(arity)]
+        )
 
         def is_correct(idx: int, val: int) -> bool:
             pt = cases[idx]
@@ -274,12 +334,14 @@ def synthesize_conditional_tree(
         is_term_valid = True
         for idx, pt in enumerate(cases):
             evaluations += 1
+            if work is not None:
+                work.probe_evaluations += 1
             try:
                 eval_term = macro_registry.desugar(term) if macro_registry is not None else term
                 v = run_ir_args(eval_term, pt, limits, expected_arity=arity)
                 if is_correct(idx, v):
                     cov.add(idx)
-            except IRViolation:
+            except (IRViolation, ValueError):
                 is_term_valid = False
                 break
         if not is_term_valid:
@@ -291,14 +353,15 @@ def synthesize_conditional_tree(
                 desugared = macro_registry.desugar(term) if macro_registry is not None else term
                 check_tree(desugared, base)
                 size, depth = _size_depth(desugared)
-                return DecisionResult(
-                    expression=desugared,
-                    nodes=size,
-                    depth=depth,
-                    candidate_evaluations=evaluations,
-                    shapes_attempted=shapes,
-                )
-            except IRViolation:
+                if depth <= effective_max_depth:
+                    return DecisionResult(
+                        expression=desugared,
+                        nodes=size,
+                        depth=depth,
+                        candidate_evaluations=evaluations,
+                        shapes_attempted=shapes,
+                    )
+            except (IRViolation, ValueError):
                 pass
 
         if cov:
@@ -318,12 +381,14 @@ def synthesize_conditional_tree(
         shapes += 1
         for idx, pt in enumerate(cases):
             evaluations += 1
+            if work is not None:
+                work.probe_evaluations += 1
             try:
                 eval_pred = macro_registry.desugar(pred) if macro_registry is not None else pred
                 b = run_ir_args(eval_pred, pt, limits, expected_arity=arity)
                 if b:
                     truth_set.add(idx)
-            except IRViolation:
+            except (IRViolation, ValueError):
                 is_pred_valid = False
                 break
         if not is_pred_valid:
@@ -344,6 +409,8 @@ def synthesize_conditional_tree(
         for j in range(len(valid_subterms)):
             if i == j:
                 continue
+            if work is not None:
+                work.auxiliary_scoring_steps += 1
             cov2 = term_coverage[j]
             t2 = valid_subterms[j]
 
@@ -355,6 +422,8 @@ def synthesize_conditional_tree(
             must_false = cov2 - cov1
 
             for k, pred in enumerate(valid_predicates):
+                if work is not None:
+                    work.auxiliary_scoring_steps += 1
                 p_true = predicate_truth_sets[k]
                 if must_true.issubset(p_true) and p_true.isdisjoint(must_false):
                     expr = {"op": "If", "args": [pred, t1, t2]}
@@ -377,66 +446,67 @@ def synthesize_conditional_tree(
                                 best_result = res
                                 if best_result.nodes <= 7:
                                     return best_result
-                    except IRViolation:
+                    except (IRViolation, ValueError):
                         continue
 
     if best_result is not None:
         return best_result
 
-    # Step 4: Multi-Level Decision Tree Induction (ID3 Information Gain)
+    # Step 4: Bounded, score-guided backtracking over conditional partitions.
+    # A locally attractive ID3 split can make a subsequent branch impossible.
+    branch_attempts = 0
+    branch_budget = max(32, min(512, len(valid_predicates) * len(cases) * 2))
+    successful_subtrees: dict[tuple[frozenset[int], int], dict] = {}
+
     def induce_tree(active_points: set[int], current_depth: int) -> dict | None:
+        nonlocal branch_attempts, shapes
         if not active_points or current_depth > effective_max_depth:
             return None
 
-        # Base case: single term covers all active points
-        best_leaf = None
-        min_leaf_size = 999
-        for term, cov in zip(valid_subterms, term_coverage):
-            if active_points.issubset(cov):
-                size, _ = _size_depth(term)
-                if size < min_leaf_size:
-                    min_leaf_size = size
-                    best_leaf = term
+        key = (frozenset(active_points), current_depth)
+        if key in successful_subtrees:
+            return successful_subtrees[key]
 
-        if best_leaf is not None:
-            return best_leaf
+        # Prefer the smallest complete leaf before attempting another branch.
+        matching_leaves = [
+            term for term, cov in zip(valid_subterms, term_coverage) if active_points.issubset(cov)
+        ]
+        if matching_leaves:
+            best = min(matching_leaves, key=lambda term: _size_depth(term)[0])
+            successful_subtrees[key] = best
+            return best
 
-        if current_depth + 2 > effective_max_depth:
+        if current_depth + 2 > effective_max_depth or branch_attempts >= branch_budget:
             return None
 
-        # Choose predicate that maximizes coverage gain across split
-        best_pred = None
-        best_score = -1
-        best_t_set = None
-        best_f_set = None
-
+        ranked_splits = []
         for pred, p_true in zip(valid_predicates, predicate_truth_sets):
             true_pts = active_points & p_true
             false_pts = active_points - p_true
             if not true_pts or not false_pts:
                 continue
-
+            if work is not None:
+                work.auxiliary_scoring_steps += 2 * len(term_coverage)
             max_true_cov = max((len(true_pts & cov) for cov in term_coverage), default=0)
             max_false_cov = max((len(false_pts & cov) for cov in term_coverage), default=0)
-            score = max_true_cov + max_false_cov
+            ranked_splits.append((max_true_cov + max_false_cov, pred, true_pts, false_pts))
 
-            if score > best_score:
-                best_score = score
-                best_pred = pred
-                best_t_set = true_pts
-                best_f_set = false_pts
-
-        if best_pred is None or best_t_set is None or best_f_set is None:
-            return None
-
-        then_child = induce_tree(best_t_set, current_depth + 1)
-        if then_child is None:
-            return None
-        else_child = induce_tree(best_f_set, current_depth + 1)
-        if else_child is None:
-            return None
-
-        return {"op": "If", "args": [best_pred, then_child, else_child]}
+        ranked_splits.sort(key=lambda split: split[0], reverse=True)
+        for _, pred, true_pts, false_pts in ranked_splits:
+            if branch_attempts >= branch_budget:
+                break
+            branch_attempts += 1
+            shapes += 1
+            then_child = induce_tree(true_pts, current_depth + 1)
+            if then_child is None:
+                continue
+            else_child = induce_tree(false_pts, current_depth + 1)
+            if else_child is None:
+                continue
+            result = {"op": "If", "args": [pred, then_child, else_child]}
+            successful_subtrees[key] = result
+            return result
+        return None
 
     multi_expr = induce_tree(universe, 1)
     if multi_expr is not None:
@@ -446,14 +516,15 @@ def synthesize_conditional_tree(
             )
             check_tree(desugared, base)
             size, depth = _size_depth(desugared)
-            return DecisionResult(
-                expression=desugared,
-                nodes=size,
-                depth=depth,
-                candidate_evaluations=evaluations,
-                shapes_attempted=shapes,
-            )
-        except IRViolation:
+            if depth <= effective_max_depth:
+                return DecisionResult(
+                    expression=desugared,
+                    nodes=size,
+                    depth=depth,
+                    candidate_evaluations=evaluations,
+                    shapes_attempted=shapes,
+                )
+        except (IRViolation, ValueError):
             pass
 
     return None

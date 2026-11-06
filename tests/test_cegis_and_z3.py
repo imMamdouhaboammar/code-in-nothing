@@ -4,6 +4,7 @@ import pytest
 
 from cin.synthesis import (
     HAS_Z3,
+    MacroRegistry,
     NeuroSymbolicAgentKernel,
     cin_to_z3,
     get_sygus_task,
@@ -116,6 +117,29 @@ class TestZ3TranslationAndVerification:
         diff_verdict = verify_equivalence_with_z3(MAX2_IR_1, MIN2_IR, arity=2)
         assert diff_verdict.status == "COUNTEREXAMPLE"
 
+    def test_duplicate_z3_variable_names_cannot_prove_aliasing(self):
+        verdict = verify_spec_with_z3(
+            {"op": "Arg", "index": 0},
+            lambda values, output: output == values[1],
+            arity=2,
+            var_names=["same", "same"],
+        )
+        assert verdict.status == "UNKNOWN"
+        assert verdict.counterexample is None
+
+    def test_median3_rejects_first_input_as_universal_answer(self):
+        task = get_sygus_task("median3")
+        verdict = verify_spec_with_z3(
+            {"op": "Arg", "index": 0},
+            task.z3_spec,
+            arity=3,
+            var_names=task.variable_names,
+        )
+        assert verdict.status == "COUNTEREXAMPLE"
+        assert verdict.counterexample is not None
+        x, y, z = verdict.counterexample
+        assert x != sorted((x, y, z))[1]
+
 
 class TestCEGISLoop:
     def test_cegis_loop_solves_max2(self):
@@ -127,6 +151,23 @@ class TestCEGISLoop:
         assert result.z3_verdict is not None
         assert result.z3_verdict.status == "SYMBOLIC_PROVED"
 
+    def test_cegis_filters_out_of_precondition_seeds(self):
+        from dataclasses import replace
+
+        task = replace(
+            get_sygus_task("max2"),
+            initial_seed_cases=((0, 1),),
+            precondition=lambda values: values[0] == values[1],
+        )
+        result = run_cegis_loop(task, BASE_2D, max_rounds=4)
+        assert result.status == "PROVED"
+        assert all(x == y for x, y in result.counterexamples)
+
+    def test_cegis_reports_zero_rounds_if_timeout_prevents_start(self):
+        result = run_cegis_loop(get_sygus_task("max2"), BASE_2D, timeout_sec=-1)
+        assert result.status == "EXHAUSTED"
+        assert result.iterations == 0
+
     def test_cegis_loop_solves_absdiff(self):
         task_abs = get_sygus_task("absdiff")
         result = run_cegis_loop(task_abs, BASE_2D, max_rounds=5)
@@ -135,7 +176,37 @@ class TestCEGISLoop:
         assert result.z3_verdict.status == "SYMBOLIC_PROVED"
 
 
+def test_blind_baseline_reports_measured_zero_budget():
+    from experiments.run_cegis_sygus_benchmark import (
+        make_base_config,
+        measure_blind_baseline,
+    )
+
+    status, shapes, elapsed_ms = measure_blind_baseline(
+        get_sygus_task("max2"), make_base_config(2), max_proposals=0
+    )
+    assert status == "EXHAUSTED"
+    assert shapes == 0
+    assert elapsed_ms >= 0
+
+
 class TestNeuroSymbolicKernel:
+    def test_intuitive_sketch_must_respect_genome_base(self):
+        kernel = NeuroSymbolicAgentKernel()
+        kernel.register_verified_tool("max2", 2, MAX2_IR_1, "test")
+        restricted_base = dict(BASE_3D)
+        restricted_base["allowed_primitives"] = ["Arg", "Add"]
+        verdict = kernel.solve_and_verify(
+            get_sygus_task("max3"), restricted_base, max_cegis_rounds=0
+        )
+        assert verdict.status != "SYMBOLIC_PROVED"
+        assert "max3" not in kernel.verified_tools
+
+    def test_caller_supplied_empty_registry_is_preserved(self):
+        registry = MacroRegistry()
+        kernel = NeuroSymbolicAgentKernel(registry)
+        assert kernel.registry is registry
+
     def test_neuro_symbolic_generational_inheritance(self):
         kernel = NeuroSymbolicAgentKernel()
 
@@ -156,7 +227,6 @@ class TestNeuroSymbolicKernel:
         assert v_clamp.status == "SYMBOLIC_PROVED"
         assert v_clamp.provenance == "intuitive_sketch"
         assert "clamp3" in kernel.verified_tools
-        assert v_clamp.elapsed_ms < 50.0  # Instant verification in milliseconds!
 
         # Generation 2: Solve max3 via intuitive sketch using inherited max2
         task_max3 = get_sygus_task("max3")

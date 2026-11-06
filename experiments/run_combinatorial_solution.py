@@ -1,4 +1,4 @@
-"""End-to-End Experimental Demonstration: Solving the Combinatorial Explosion in CIN.
+"""End-to-End Experimental Demonstration: Bounded CIN Synthesis Components.
 
 Demonstrates:
   - Stage S1: Information-Theoretic Branch Decoupling (ID3 predicate selection)
@@ -19,7 +19,6 @@ from cin.synthesis import (
     Macro,
     MacroRegistry,
     deduce_inverse_obligations,
-    evaluate_transfer_utility,
     extract_reusable_abstractions,
     soundly_prunes_binary_op,
     synthesize_conditional_tree,
@@ -56,7 +55,7 @@ BASE_3D = {
 
 def main():
     print("================================================================================")
-    print("CODE-IN-NOTHING: COMBINATORIAL EXPLOSION RESOLUTION BENCHMARK")
+    print("CODE-IN-NOTHING: BOUNDED SYNTHESIS EXPERIMENT")
     print("================================================================================\n")
 
     # --------------------------------------------------------------------------
@@ -70,9 +69,13 @@ def main():
     res_absdiff = synthesize_conditional_tree(cases_2d, target_absdiff, BASE_2D)
     t_absdiff = time.perf_counter() - t0
 
-    print(f"  Synthesized AST : {res_absdiff.expression}")
-    print(f"  Attempted Shapes: {res_absdiff.shapes_attempted} (vs 229,135 naive baseline)")
-    print(f"  Reduction Factor: {229135 / res_absdiff.shapes_attempted:.1f}x reduction")
+    if res_absdiff is None:
+        print("  Result          : FAILED (no expression found within the search budget)")
+    else:
+        print(f"  Synthesized AST : {res_absdiff.expression}")
+        print(
+            f"  Search Shapes   : {res_absdiff.shapes_attempted} (excludes candidate generation work)"
+        )
     print(f"  Synthesis Time  : {t_absdiff * 1000:.2f} ms\n")
 
     # --------------------------------------------------------------------------
@@ -137,41 +140,43 @@ def main():
     )
     t_clamp = time.perf_counter() - t0
 
-    print(f"  Clamp3 Synthesized AST  : {res_clamp.expression}")
-    print(f"  AST Nodes / Depth       : {res_clamp.nodes} nodes, depth {res_clamp.depth}")
-    print(
-        f"  Shapes Attempted        : {res_clamp.shapes_attempted} (naive blows up without macros)"
-    )
+    if res_clamp is None:
+        print("  Clamp3 Synthesis         : FAILED (no expression found within the search budget)")
+        verdict_clamp = None
+    else:
+        print(f"  Clamp3 Synthesized AST  : {res_clamp.expression}")
+        print(f"  AST Nodes / Depth       : {res_clamp.nodes} nodes, depth {res_clamp.depth}")
+        print(
+            f"  Search Shapes           : {res_clamp.shapes_attempted} (excludes generation work)"
+        )
+        verdict_clamp = verify_program(res_clamp.expression, world_clamp, BASE_3D)
+        print(
+            f"  Independent World Check : {verdict_clamp.status} on {verdict_clamp.checked} cases"
+        )
     print(f"  Clamp3 Synthesis Time   : {t_clamp * 1000:.2f} ms")
-
-    verdict_clamp = verify_program(res_clamp.expression, world_clamp, BASE_3D)
-    print(f"  Independent World Check : {verdict_clamp.status} on {verdict_clamp.checked} cases")
-
-    util = evaluate_transfer_utility(
-        registry.get("max2"),
-        evals_without=50000,
-        evals_with=res_clamp.candidate_evaluations,
-        extraction_cost=20,
-    )
-    print(f"  Macro Transfer Utility  : +{util:.0f} evaluations saved\n")
+    print("  Macro Transfer Utility  : NOT MEASURED (no matched baseline)\n")
 
     # --------------------------------------------------------------------------
     # STAGE S5: Unbounded Linear Integer Arithmetic (LIA) Symbolic Verification
     # --------------------------------------------------------------------------
     print("=== [Stage S5] Unbounded Linear Integer Arithmetic (LIA) Symbolic Proof ===")
     v_max2 = verify_spec_symbolic(max2_ir, spec="max2", arity=2)
-    v_abs = verify_spec_symbolic(res_absdiff.expression, spec="absdiff", arity=2)
-    v_cl = verify_spec_symbolic(res_clamp.expression, spec="clamp3", arity=3)
+    v_abs = (
+        verify_spec_symbolic(res_absdiff.expression, spec="absdiff", arity=2)
+        if res_absdiff is not None
+        else None
+    )
+    v_cl = (
+        verify_spec_symbolic(res_clamp.expression, spec="clamp3", arity=3)
+        if res_clamp is not None
+        else None
+    )
 
     print(
         f"  max2 Formal Proof   : {v_max2.status} ({v_max2.proof_scope}, {v_max2.feasible_regions} regions)"
     )
-    print(
-        f"  absdiff Formal Proof: {v_abs.status} ({v_abs.proof_scope}, {v_abs.feasible_regions} regions)"
-    )
-    print(
-        f"  clamp3 Formal Proof : {v_cl.status} ({v_cl.proof_scope}, {v_cl.feasible_regions} regions)"
-    )
+    print(f"  absdiff Formal Proof: {v_abs.status if v_abs is not None else 'NOT_RUN'}")
+    print(f"  clamp3 Formal Proof : {v_cl.status if v_cl is not None else 'NOT_RUN'}")
 
     # Test counterexample detection on flawed candidate
     flawed_max = {"op": "Arg", "index": 0}
@@ -182,7 +187,19 @@ def main():
     print(f"  Explanation         : {v_flawed.explanation}\n")
 
     print("================================================================================")
-    print("VERIFICATION COMPLETED: All 5 Stages Verified Green.")
+    verified = (
+        res_absdiff is not None
+        and res_clamp is not None
+        and verdict_clamp is not None
+        and verdict_clamp.status == "PASS"
+        and all(
+            verdict is not None and verdict.status == "SYMBOLIC_PROVED"
+            for verdict in (v_max2, v_abs, v_cl)
+        )
+    )
+    print(
+        f"EXPERIMENT STATUS: {'ALL RECORDED CHECKS PASSED' if verified else 'INCOMPLETE OR FAILED'}"
+    )
     print("================================================================================")
 
 

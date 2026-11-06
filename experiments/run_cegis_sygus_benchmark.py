@@ -11,6 +11,7 @@ from __future__ import annotations
 import random
 import time
 
+from cin.search import SearchStats, candidate_stream
 from cin.synthesis import (
     HAS_Z3,
     CEGISResult,
@@ -20,6 +21,7 @@ from cin.synthesis import (
     get_sygus_task,
     run_cegis_loop,
 )
+from cin.synthesis.z3_verifier import verify_spec_with_z3
 
 if not HAS_Z3:
     raise RuntimeError("z3-solver is required to run this benchmark")
@@ -38,6 +40,38 @@ def make_base_config(arity: int) -> dict:
         "max_ast_nodes": 25,
         "invariants": ["typed", "pure", "deterministic", "resource_bounded"],
     }
+
+
+def measure_blind_baseline(
+    task: SyGuSTask, base: dict, *, max_proposals: int = 200, time_budget_sec: float = 5.0
+) -> tuple[str, int, float]:
+    """Measure candidates actually tested, without feeding verifier counterexamples back."""
+    started = time.perf_counter()
+    stats = SearchStats()
+    stream = candidate_stream(
+        base["starting_expression"],
+        base,
+        seed=0,
+        max_proposals=max_proposals,
+        stats=stats,
+    )
+    status = "EXHAUSTED"
+    for proposal in stream:
+        if time.perf_counter() - started >= time_budget_sec:
+            status = "TIMEOUT"
+            break
+        verdict = verify_spec_with_z3(
+            proposal.expression,
+            task.z3_spec,
+            arity=task.arity,
+            var_names=task.variable_names,
+            precondition=task.precondition,
+        )
+        if verdict.status == "SYMBOLIC_PROVED":
+            status = "PROVED"
+            break
+    elapsed_ms = (time.perf_counter() - started) * 1000
+    return status, stats.attempted_shapes, elapsed_ms
 
 
 def main():
@@ -69,22 +103,9 @@ def main():
         print("--------------------------------------------------------------------------------")
 
         # ----------------------------------------------------------------------
-        # ARM 0: Blind Evolutionary Search (Simulated Baseline: no counterexamples)
+        # ARM 0: Blind Search, measured with fixed proposal and wall-time budgets
         # ----------------------------------------------------------------------
-        # In blind search, synthesis operates without counterexample guidance
-        # For tasks with depth > 3 or arity >= 3, blind search explodes exponentially
-        if task.name in ("max2", "min2"):
-            arm0_status = "FINITE_ONLY"
-            arm0_shapes = 229135 if task.name == "absdiff" else 1500
-            arm0_time_ms = 1800.0
-        elif task.name == "absdiff":
-            arm0_status = "FINITE_ONLY"
-            arm0_shapes = 229135
-            arm0_time_ms = 4500.0
-        else:
-            arm0_status = "TIMEOUT (O(b^d))"
-            arm0_shapes = ">250,000"
-            arm0_time_ms = 30000.0
+        arm0_status, arm0_shapes, arm0_time_ms = measure_blind_baseline(task, base)
 
         # ----------------------------------------------------------------------
         # ARM 1: Classical CEGIS with Z3 (Counterexample Guided, No Inherited Library)
@@ -121,6 +142,8 @@ def main():
             {
                 "task": task_name,
                 "arm0_status": arm0_status,
+                "arm0_shapes": arm0_shapes,
+                "arm0_time_ms": arm0_time_ms,
                 "arm1_status": arm1_res.status,
                 "arm1_rounds": arm1_res.iterations,
                 "arm2_status": arm2_verdict.status,
@@ -145,16 +168,15 @@ def main():
             f"{r['task']:<10} | {r['arm0_status']:<15} | {arm1_label:<18} | {arm2_label:<22} | {t_ms:.2f} ms"
         )
     print("=" * 80)
-    print("VERIFICATION CONCLUSION:")
+    print("MEASUREMENT NOTES:")
     print(
-        "  1. Lifting counterexample hiding via CEGIS guarantees mathematically proved convergence."
+        "  Blind baseline: up to 200 proposals and 5 seconds per task, no counterexample feedback."
     )
     print(
-        "  2. Z3 SMT solver guarantees 100% formal correctness across all unbounded integers Z^k."
+        "  PROVED denotes an UNSAT negated specification within the task's declared precondition."
     )
-    print(
-        "  3. Neuro-Symbolic guidance + Generational tool inheritance solves 4-variable tasks in < 5ms."
-    )
+    print("  EXHAUSTED/TIMEOUT are budget outcomes, not proofs of synthesis impossibility.")
+    print("  Task ordering and inherited macros can affect later results; no generalization claim.")
     print("=" * 80)
 
 

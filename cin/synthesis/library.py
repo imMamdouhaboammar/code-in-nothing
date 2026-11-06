@@ -138,7 +138,7 @@ def _matches_macro_pattern(expr: dict, pattern: dict, arity: int) -> tuple[bool,
         p_op = p.get("op")
         if p_op == "Arg":
             idx = p["index"]
-            if idx >= arity:
+            if not 0 <= idx < arity:
                 return False
             if collected_args[idx] is None:
                 collected_args[idx] = deepcopy(e)
@@ -175,6 +175,9 @@ def anti_unify(t1: dict, t2: dict) -> tuple[dict, list[tuple[dict, dict]]]:
         where general_template contains {"op": "Arg", "index": i} holes
         and substitutions[i] = (term1_subterm, term2_subterm).
     """
+    if t1 == t2:
+        return deepcopy(t1), []
+
     substitutions: list[tuple[dict, dict]] = []
 
     def _au(n1: dict, n2: dict) -> dict:
@@ -184,8 +187,9 @@ def anti_unify(t1: dict, t2: dict) -> tuple[dict, list[tuple[dict, dict]]]:
                 if n1.get("value") == n2.get("value"):
                     return deepcopy(n1)
             elif op == "Arg":
-                if n1.get("index") == n2.get("index"):
-                    return deepcopy(n1)
+                # Every Arg in a non-identical template is a formal parameter.
+                # Keeping a source Arg index would collide with generated holes.
+                pass
             elif len(n1.get("args", [])) == len(n2.get("args", [])):
                 children = [_au(c1, c2) for c1, c2 in zip(n1.get("args", []), n2.get("args", []))]
                 return {"op": op, "args": children}

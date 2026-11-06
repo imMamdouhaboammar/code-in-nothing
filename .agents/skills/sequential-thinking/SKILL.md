@@ -27,6 +27,8 @@ Use `mcp__reasoning__sequentialthinking` when:
 
 **Don't use for**: Simple queries, direct facts, or single-step tasks.
 
+If `mcp__reasoning__sequentialthinking` is unavailable, use a written step list with explicit assumptions, alternatives, checks, and revisions. Mark branches you considered and why they were rejected. The MCP tool is optional; the reasoning workflow remains usable without it. To enable the MCP workflow, register a compatible sequential-thinking MCP provider in the host's tool configuration and verify that the tool is exposed before invoking it.
+
 ## Basic Usage
 
 The MCP tool `mcp__reasoning__sequentialthinking` accepts these parameters:

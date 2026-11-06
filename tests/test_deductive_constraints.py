@@ -42,6 +42,24 @@ def test_relational_target_sets_max2():
     assert -1 in target_sets[2]
 
 
+def test_incomplete_target_sampling_never_prunes_valid_arithmetic():
+    world = load_world("examples/world-max2.v0.1.yaml")
+    cases = ((100, 0),)
+    sampled_targets = compute_relational_target_sets(cases, world)
+    assert sampled_targets[0] == set()
+    valid_left = [{"op": "Arg", "index": 0}]
+    valid_right = [{"op": "ConstInt", "value": 0}]
+    retained = deductive_filter_binary_pairs(
+        "Add",
+        valid_left,
+        valid_right,
+        cases,
+        sampled_targets,
+        arity=2,
+    )
+    assert len(retained) == 1
+
+
 def test_deduce_inverse_obligations():
     admissible = {7, 10}
     # Add: L + R in {7, 10} => when L = 3, R in {4, 7}

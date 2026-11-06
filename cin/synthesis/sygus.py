@@ -52,7 +52,7 @@ def _build_sygus_catalog() -> dict[str, SyGuSTask]:
             res >= vars[1],
             z3.Or(res == vars[0], res == vars[1]),
         ),
-        reference_oracle=lambda x, y: max(x, y),
+        reference_oracle=max,
         initial_seed_cases=((0, 1), (2, -1)),
     )
 
@@ -67,7 +67,7 @@ def _build_sygus_catalog() -> dict[str, SyGuSTask]:
             res <= vars[1],
             z3.Or(res == vars[0], res == vars[1]),
         ),
-        reference_oracle=lambda x, y: min(x, y),
+        reference_oracle=min,
         initial_seed_cases=((0, 1), (2, -1)),
     )
 
@@ -98,7 +98,7 @@ def _build_sygus_catalog() -> dict[str, SyGuSTask]:
             res >= vars[2],
             z3.Or(res == vars[0], res == vars[1], res == vars[2]),
         ),
-        reference_oracle=lambda x, y, z: max(x, y, z),
+        reference_oracle=max,
         initial_seed_cases=((1, 2, 3), (3, 2, 1), (2, 3, 1)),
     )
 
@@ -114,7 +114,7 @@ def _build_sygus_catalog() -> dict[str, SyGuSTask]:
             res <= vars[2],
             z3.Or(res == vars[0], res == vars[1], res == vars[2]),
         ),
-        reference_oracle=lambda x, y, z: min(x, y, z),
+        reference_oracle=min,
         initial_seed_cases=((1, 2, 3), (3, 2, 1), (2, 3, 1)),
     )
 
@@ -140,20 +140,21 @@ def _build_sygus_catalog() -> dict[str, SyGuSTask]:
         category="LIA",
         arity=3,
         variable_names=["x", "y", "z"],
-        z3_spec=lambda vars, res: z3.And(
-            z3.Or(res == vars[0], res == vars[1], res == vars[2]),
+        z3_spec=lambda vars, res: (
             res
-            >= z3.If(
-                vars[0] < vars[1],
-                z3.If(vars[0] < vars[2], vars[0], vars[2]),
-                z3.If(vars[1] < vars[2], vars[1], vars[2]),
-            ),
-            res
-            <= z3.If(
-                vars[0] > vars[1],
-                z3.If(vars[0] > vars[2], vars[0], vars[2]),
-                z3.If(vars[1] > vars[2], vars[1], vars[2]),
-            ),
+            == z3.If(
+                vars[0] <= vars[1],
+                z3.If(
+                    vars[1] <= vars[2],
+                    vars[1],
+                    z3.If(vars[0] <= vars[2], vars[2], vars[0]),
+                ),
+                z3.If(
+                    vars[0] <= vars[2],
+                    vars[0],
+                    z3.If(vars[1] <= vars[2], vars[2], vars[1]),
+                ),
+            )
         ),
         reference_oracle=lambda x, y, z: sorted([x, y, z])[1],
         initial_seed_cases=((1, 2, 3), (3, 1, 2), (2, 3, 1)),
@@ -172,7 +173,7 @@ def _build_sygus_catalog() -> dict[str, SyGuSTask]:
             res >= vars[3],
             z3.Or(res == vars[0], res == vars[1], res == vars[2], res == vars[3]),
         ),
-        reference_oracle=lambda x, y, z, w: max(x, y, z, w),
+        reference_oracle=max,
         initial_seed_cases=((1, 2, 3, 4), (4, 3, 2, 1)),
     )
 

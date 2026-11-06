@@ -196,6 +196,11 @@
     },
     "input_domain": {
       "type": "object",
+      "propertyNames": {
+        "not": {
+          "const": "result"
+        }
+      },
       "minProperties": 1,
       "maxProperties": 8,
       "additionalProperties": {

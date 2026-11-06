@@ -25,6 +25,7 @@ from __future__ import annotations
 import hashlib
 import math
 import os
+import random
 import resource
 import signal
 import sys
@@ -35,6 +36,7 @@ from pathlib import Path
 from cin.contracts import load_genome, load_world
 from cin.ir import Limits, canonical_hash
 from cin.synthesis.decision import (
+    SynthesisWork,
     _size_depth,
     generate_candidate_predicates,
     generate_candidate_subterms,
@@ -102,7 +104,7 @@ class CostCounters:
     primitive_subterms: int = 0
     primitive_predicates: int = 0
     probe_evaluations: int = 0
-    aux_entropy_calculations: int = 0
+    auxiliary_scoring_steps: int = 0
     aux_interval_propagations: int = 0
     aux_anti_unifications: int = 0
     verifier_calls: int = 0
@@ -123,6 +125,7 @@ def instrumented_synthesize(
     force_naive_search: bool = False,
 ) -> tuple[dict | None, CostCounters]:
     counters = CostCounters()
+    work = SynthesisWork()
     t_start = time.perf_counter()
 
     domain = world_dict.get("input_domain", {})
@@ -183,8 +186,11 @@ def instrumented_synthesize(
                     counters.ast_nodes, counters.ast_depth = _size_depth(solved_expr)
                     break
             if counters.status == "UNKNOWN":
-                counters.status = "TIMEOUT"
-                counters.failure_reason = f"Exhausted {max_proposals} proposals"
+                counters.status = "EXHAUSTED"
+                counters.failure_reason = (
+                    f"Exhausted search after {counters.primitive_subterms} evaluated proposals "
+                    f"(cap {max_proposals}) without proof"
+                )
 
             signal.alarm(0)
             counters.wall_clock_ms = (time.perf_counter() - t_start) * 1000.0
@@ -200,20 +206,21 @@ def instrumented_synthesize(
             max_depth=3,
             limits=limits,
             macro_registry=macro_registry,
+            work=work,
         )
-        counters.primitive_subterms = len(subterms)
-        counters.probe_evaluations += len(subterms) * len(cases)
 
         atomic_terms = [t for t in subterms if _size_depth(t)[1] <= 2]
         predicates = []
         if "If" in allowed:
             predicates = generate_candidate_predicates(
-                atomic_terms, allowed, cases, arity, limits=limits, macro_registry=macro_registry
+                atomic_terms,
+                allowed,
+                cases,
+                arity,
+                limits=limits,
+                macro_registry=macro_registry,
+                work=work,
             )
-            counters.primitive_predicates = len(predicates)
-            counters.probe_evaluations += len(predicates) * len(cases)
-
-        counters.aux_entropy_calculations = len(predicates) * 2
 
         res = synthesize_conditional_tree(
             cases,
@@ -223,6 +230,7 @@ def instrumented_synthesize(
             predicates=predicates,
             macro_registry=macro_registry,
             max_tree_depth=base_genome.get("max_ast_depth", 7),
+            work=work,
         )
 
         signal.alarm(0)
@@ -233,8 +241,6 @@ def instrumented_synthesize(
             counters.wall_clock_ms = (time.perf_counter() - t_start) * 1000.0
             counters.peak_rss_kb = get_peak_rss_kb()
             return None, counters
-
-        counters.probe_evaluations += res.candidate_evaluations
 
         # Verify candidate on the full independent world verifier
         t_v0 = time.perf_counter()
@@ -269,6 +275,11 @@ def instrumented_synthesize(
         counters.peak_rss_kb = get_peak_rss_kb()
         return None, counters
     finally:
+        if not force_naive_search:
+            counters.primitive_subterms = work.primitive_subterms
+            counters.primitive_predicates = work.primitive_predicates
+            counters.probe_evaluations = work.probe_evaluations
+            counters.auxiliary_scoring_steps = work.auxiliary_scoring_steps
         signal.alarm(0)
         signal.signal(signal.SIGALRM, old_handler)
 
@@ -330,6 +341,12 @@ def generate_20_distractor_macros() -> list[Macro]:
         distractors.append(Macro(f"distract_const_{k}", 1, mk, canonical_hash(mk)))
 
     return distractors
+
+
+def make_high_arity_cases(arity: int, count: int = 32) -> tuple[tuple[int, ...], ...]:
+    """Use deterministic independent-axis probes instead of identical columns."""
+    rng = random.Random(6000 + arity)
+    return tuple(tuple(rng.randint(-3, 3) for _ in range(arity)) for _ in range(count))
 
 
 def run_full_adversarial_evaluation() -> None:
@@ -410,27 +427,30 @@ def run_full_adversarial_evaluation() -> None:
     # High-Arity Tasks (5 and 8 inputs) with strict 3-second timeout
     def test_high_arity(arity: int, timeout: int = 3) -> CostCounters:
         base_hd = dict(base_2d)
+        base_hd["cin_ir_version"] = "0.2"
         base_hd["input_types"] = ["Int"] * arity
         base_hd["max_ast_depth"] = 8
         base_hd["max_ast_nodes"] = 40
-        cases_hd = tuple(tuple((i * 3 + j * 7) % 7 - 3 for j in range(arity)) for i in range(15))
+        cases_hd = make_high_arity_cases(arity)
         target_hd = tuple(sum(pt) for pt in cases_hd)
         c = CostCounters()
+        work = SynthesisWork()
         t0 = time.perf_counter()
 
         old_h = signal.signal(signal.SIGALRM, _alarm_handler)
         signal.alarm(timeout)
         try:
-            res = synthesize_conditional_tree(cases_hd, target_hd, base_hd, max_tree_depth=6)
+            res = synthesize_conditional_tree(
+                cases_hd, target_hd, base_hd, max_tree_depth=6, work=work
+            )
             signal.alarm(0)
             if res:
                 c.status = "PASS"
                 c.ast_nodes = res.nodes
                 c.ast_depth = res.depth
-                c.probe_evaluations = res.candidate_evaluations
             else:
-                c.status = "FAILED"
-                c.failure_reason = "Depth bound exhausted"
+                c.status = "EXHAUSTED"
+                c.failure_reason = "No covering expression found within depth and search bounds"
         except TaskTimeout:
             c.status = "TIMEOUT"
             c.failure_reason = f"Combinatorial tree explosion exceeded {timeout}s"
@@ -442,6 +462,10 @@ def run_full_adversarial_evaluation() -> None:
             signal.alarm(0)
             signal.signal(signal.SIGALRM, old_h)
 
+        c.primitive_subterms = work.primitive_subterms
+        c.primitive_predicates = work.primitive_predicates
+        c.probe_evaluations = work.probe_evaluations
+        c.auxiliary_scoring_steps = work.auxiliary_scoring_steps
         c.wall_clock_ms = (time.perf_counter() - t0) * 1000.0
         c.peak_rss_kb = get_peak_rss_kb()
         return c
@@ -494,7 +518,7 @@ def run_full_adversarial_evaluation() -> None:
             f"{c.verifier_calls} ({c.verifier_time_ms:.1f}ms)" if c.verifier_calls else "0 (0ms)"
         )
         print(
-            f"| `{task_name}` | **{c.status}** | {c.primitive_subterms + c.primitive_predicates} | {c.probe_evaluations} | {c.aux_entropy_calculations} | {v_str} | {c.wall_clock_ms:.2f} | {c.peak_rss_kb:.1f} |"
+            f"| `{task_name}` | **{c.status}** | {c.primitive_subterms + c.primitive_predicates} | {c.probe_evaluations} | {c.auxiliary_scoring_steps} | {v_str} | {c.wall_clock_ms:.2f} | {c.peak_rss_kb:.1f} |"
         )
     print()
 

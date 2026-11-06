@@ -12,7 +12,6 @@
 
 from __future__ import annotations
 
-import math
 from collections import defaultdict
 from dataclasses import dataclass, field
 from random import Random
@@ -114,13 +113,17 @@ class NeuralLikeLayer:
         self._normalize()
 
     def _normalize(self) -> None:
-        """softmax مبسط: exp(w_i) / sum(exp(w_j))."""
-        exp_w = [math.exp(w) for w in self.weights]
-        total = sum(exp_w)
-        self.weights = [max(e / total, _MIN_WEIGHT) for e in exp_w]
-        # إعادة التطبيع بعد تطبيق الحد الأدنى
-        s = sum(self.weights)
-        self.weights = [w / s for w in self.weights]
+        """Normalize probability weights without reapplying softmax to probabilities."""
+        if not self.weights:
+            raise ValueError("At least one sampling key is required")
+        floor = min(_MIN_WEIGHT, 1.0 / len(self.weights))
+        mass = [max(0.0, value) for value in self.weights]
+        total = sum(mass)
+        if total == 0:
+            mass = [1.0] * len(mass)
+            total = len(mass)
+        remaining = 1.0 - floor * len(mass)
+        self.weights = [floor + remaining * value / total for value in mass]
 
     def reinforce(self, key: str, signal: float = 1.0) -> None:
         """تعزيز وزن مفتاح بناءً على إشارة موجبة (Hebbian)."""
@@ -133,7 +136,8 @@ class NeuralLikeLayer:
 
     def decay(self) -> None:
         """تخفيف الأوزان بعد كل دورة (forgetting factor)."""
-        self.weights = [max(w * _DECAY, _MIN_WEIGHT) for w in self.weights]
+        uniform = 1.0 / len(self.weights)
+        self.weights = [_DECAY * w + (1.0 - _DECAY) * uniform for w in self.weights]
         self._normalize()
 
     def sample(self, rng: Random) -> str:
@@ -155,6 +159,13 @@ class NeuralLikeLayer:
 # ──────────────────────────────────────────────────────────────────────────────
 # بناء AST احتمالي (بدلاً من المنهجية الحتمية)
 # ──────────────────────────────────────────────────────────────────────────────
+
+
+def _sample_target_depth(rng: Random, preferred_depth: int, max_depth: int) -> int:
+    """Usually exploit the observed depth, occasionally explore deeper admissible ASTs."""
+    if max_depth > preferred_depth + 1 and rng.random() < 0.15:
+        return rng.randint(preferred_depth + 2, max_depth)
+    return max(1, min(preferred_depth + rng.randint(-1, 1), max_depth))
 
 
 def _build_intuitive_node(
@@ -344,13 +355,13 @@ class IntuitiveEngine:
 
         while produced < max_proposals and attempts < max_attempts:
             attempts += 1
+            if stats is not None:
+                stats.attempted_shapes += 1
 
             # توليد مقترح AST احتمالي
-            target_depth = min(
-                self._memory.preferred_depth() + self._rng.randint(-1, 1),
-                max_depth,
+            target_depth = _sample_target_depth(
+                self._rng, self._memory.preferred_depth(), max_depth
             )
-            target_depth = max(1, target_depth)
 
             try:
                 expr = _build_intuitive_node(
@@ -389,7 +400,6 @@ class IntuitiveEngine:
             self._learn_from(expr)
 
             if stats is not None:
-                stats.attempted_shapes += 1
                 stats.integer_representatives += 1
 
             produced += 1
@@ -462,6 +472,8 @@ def hybrid_stream(
 
     if not 0.0 <= intuition_ratio <= 1.0:
         raise ValueError("intuition_ratio must be in [0.0, 1.0]")
+    if engine.base != base:
+        raise ValueError("Intuition engine base must match the deterministic search base")
 
     n_intuitive = int(max_proposals * intuition_ratio)
     n_deterministic = max_proposals - n_intuitive
@@ -477,6 +489,7 @@ def hybrid_stream(
     det_done = False
     int_done = False
     produced = 0
+    seen_hashes: set[str] = set()
 
     while produced < max_proposals:
         # جمع دفعة من كلا المصدرين
@@ -499,10 +512,14 @@ def hybrid_stream(
         use_intuition = int_buffer and (not det_buffer or rng.random() < intuition_ratio)
 
         if use_intuition and int_buffer:
-            yield int_buffer.pop(0)
-            produced += 1
+            proposal = int_buffer.pop(0)
         elif det_buffer:
-            yield det_buffer.pop(0)
-            produced += 1
+            proposal = det_buffer.pop(0)
         else:
             break
+        expression_hash = canonical_hash(proposal.expression)
+        if expression_hash in seen_hashes:
+            continue
+        seen_hashes.add(expression_hash)
+        yield proposal
+        produced += 1

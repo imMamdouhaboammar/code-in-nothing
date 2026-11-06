@@ -1,7 +1,7 @@
 """Neuro-Symbolic Intuitive Guidance and Generational Tool Inheritance.
 
 Integrates:
-- Probabilistic guidance / LLM intuition layer to propose high-level AST sketches
+- Heuristic template guidance to propose high-level AST sketches
   and select composed abstractions from the inherited MacroRegistry.
 - The CIN + Z3 formal guardian to mathematically verify proposed sketches.
 - Generational inheritance of proved functions as guaranteed agent tools.
@@ -13,7 +13,7 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from ..ir import canonical_hash
+from ..ir import IRViolation, canonical_hash, check_tree
 from .cegis import CEGISResult, run_cegis_loop
 from .library import Macro, MacroRegistry
 from .sygus import SyGuSTask
@@ -48,7 +48,7 @@ class NeuroSymbolicAgentKernel:
     """Agentic kernel combining an intuitive proposal guide with an SMT formal verifier."""
 
     def __init__(self, registry: MacroRegistry | None = None):
-        self.registry = registry or MacroRegistry()
+        self.registry = registry if registry is not None else MacroRegistry()
         self.verified_tools: dict[str, dict] = {}
         self.lineage_log: list[dict[str, Any]] = []
 
@@ -79,7 +79,7 @@ class NeuroSymbolicAgentKernel:
     def propose_intuitive_sketches(self, task: SyGuSTask) -> list[dict]:
         """Generates high-level structural sketches and macro compositions.
 
-        Emulates an LLM/probabilistic prior that selects and chains available
+        Uses task-name heuristics that select and chain available
         abstractions from the inherited library rather than blindly searching ASTs.
         """
         sketches: list[dict] = []
@@ -181,7 +181,11 @@ class NeuroSymbolicAgentKernel:
         if try_intuitive_prior:
             sketches = self.propose_intuitive_sketches(task)
             for sketch in sketches:
-                desugared = self.registry.desugar(sketch)
+                try:
+                    desugared = self.registry.desugar(sketch)
+                    check_tree(desugared, base)
+                except (IRViolation, ValueError):
+                    continue
                 verdict = verify_spec_with_z3(
                     desugared,
                     task.z3_spec,

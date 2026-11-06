@@ -150,3 +150,75 @@ class TestRedGreenFalsification:
         cx, cy = verdict.counterexample
         # Counterexample must exhibit cx < cy
         assert cx < cy
+
+
+class TestAdversarialSoundness:
+    def test_feasibility_finds_unbounded_integer_witness(self):
+        from cin.synthesis.symbolic import LinearInequality, PolyhedralRegion
+
+        region = PolyhedralRegion(1, [LinearInequality((-1,), 101)])
+        feasible, witness = region.is_feasible()
+        assert feasible is True
+        assert witness is not None and witness[0] >= 101
+
+    def test_equivalence_rejects_disagreement_beyond_legacy_search_window(self):
+        arg = {"op": "Arg", "index": 0}
+        one = {"op": "ConstInt", "value": 1}
+        at_least_101 = {
+            "op": "If",
+            "args": [
+                {"op": "LessThan", "args": [arg, {"op": "ConstInt", "value": 101}]},
+                arg,
+                {"op": "Add", "args": [arg, one]},
+            ],
+        }
+        verdict = verify_equivalence_symbolic(at_least_101, arg, arity=1)
+        assert verdict.status == "COUNTEREXAMPLE"
+        assert verdict.counterexample is not None
+        assert verdict.counterexample[0] >= 101
+
+    def test_max2_rejects_output_that_only_matches_a_region_witness(self):
+        x = {"op": "Arg", "index": 0}
+        y = {"op": "Arg", "index": 1}
+        zero = {"op": "ConstInt", "value": 0}
+        genuine_max = MAX2_IR_1
+        wrong_on_nonnegative_inputs = {
+            "op": "If",
+            "args": [
+                {"op": "LessThan", "args": [x, zero]},
+                genuine_max,
+                {
+                    "op": "If",
+                    "args": [
+                        {"op": "LessThan", "args": [y, zero]},
+                        genuine_max,
+                        {"op": "Add", "args": [x, y]},
+                    ],
+                },
+            ],
+        }
+        verdict = verify_spec_symbolic(wrong_on_nonnegative_inputs, "max2", 2)
+        assert verdict.status == "COUNTEREXAMPLE"
+        assert verdict.counterexample is not None
+        cx, cy = verdict.counterexample
+        assert cx >= 0 and cy >= 0 and cx + cy != max(cx, cy)
+
+    def test_median3_exact_contract_proves_correct_program(self):
+        x = {"op": "Arg", "index": 0}
+        y = {"op": "Arg", "index": 1}
+        z = {"op": "Arg", "index": 2}
+
+        def minimum(a, b):
+            return {"op": "If", "args": [{"op": "LessThan", "args": [a, b]}, a, b]}
+
+        def maximum(a, b):
+            return {"op": "If", "args": [{"op": "LessThan", "args": [a, b]}, b, a]}
+
+        median = maximum(minimum(x, y), minimum(maximum(x, y), z))
+        verdict = verify_spec_symbolic(median, "median3", 3)
+        assert verdict.status == "SYMBOLIC_PROVED"
+
+    def test_median3_rejects_first_argument_shortcut(self):
+        verdict = verify_spec_symbolic({"op": "Arg", "index": 0}, "median3", 3)
+        assert verdict.status == "COUNTEREXAMPLE"
+        assert verdict.counterexample is not None

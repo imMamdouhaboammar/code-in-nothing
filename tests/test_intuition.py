@@ -77,6 +77,14 @@ class TestPatternMemory:
 
 
 class TestNeuralLikeLayer:
+    def test_repeated_reinforcement_preserves_learned_preference(self):
+        layer = NeuralLikeLayer(keys=["A", "B", "C"])
+        initial = layer.weights[0]
+        for _ in range(20):
+            layer.reinforce("A")
+        assert layer.weights[0] > initial + 0.2
+        assert layer.weights[0] > layer.weights[1] * 2
+
     def test_weights_sum_to_one_at_init(self):
         layer = NeuralLikeLayer(keys=["Add", "Sub", "Arg", "ConstInt"])
         assert math.isclose(sum(layer.weights), 1.0, abs_tol=1e-9)
@@ -135,6 +143,15 @@ class TestNeuralLikeLayer:
 # ── IntuitiveEngine ──────────────────────────────────────────────────────────
 
 
+def test_depth_exploration_can_exceed_short_term_preference():
+    from cin.intuition import _sample_target_depth
+
+    rng = Random(0)
+    depths = [_sample_target_depth(rng, preferred_depth=2, max_depth=8) for _ in range(200)]
+    assert max(depths) >= 6
+    assert all(1 <= depth <= 8 for depth in depths)
+
+
 class TestIntuitiveEngine:
     def test_make_engine_returns_engine(self):
         engine = make_engine(BASE, seed=0)
@@ -170,6 +187,12 @@ class TestIntuitiveEngine:
         engine.reset()
         patterns = engine.top_patterns()
         assert patterns["total_observations"] == 0
+
+    def test_attempt_counter_includes_pruned_candidates(self):
+        engine = make_engine(BASE, seed=5)
+        stats = SearchStats()
+        proposals = list(engine.intuition_stream(_PARENT, max_proposals=20, stats=stats))
+        assert stats.attempted_shapes > len(proposals)
 
     def test_stats_updated(self):
         engine = make_engine(BASE, seed=5)
@@ -252,6 +275,23 @@ class TestHybridStream:
         # مقترح حتمي واحد على الأقل
         assert any(p.operator != "intuition_guess" for p in proposals)
 
+    def test_mismatched_engine_base_rejected(self):
+        engine = make_engine(BASE, seed=0)
+        incompatible = dict(BASE)
+        incompatible["allowed_constants"] = [999]
+        with pytest.raises(ValueError):
+            list(hybrid_stream(_PARENT, incompatible, engine, max_proposals=10))
+
+    def test_cross_stream_duplicate_programs_removed(self):
+        engine = make_engine(BASE, seed=3)
+        proposals = list(
+            hybrid_stream(_PARENT, BASE, engine, intuition_ratio=0.5, max_proposals=100)
+        )
+        from cin.ir import canonical_hash
+
+        hashes = [canonical_hash(proposal.expression) for proposal in proposals]
+        assert len(hashes) == len(set(hashes))
+
     def test_invalid_ratio_raises(self):
         engine = make_engine(BASE, seed=0)
         with pytest.raises(ValueError):
@@ -285,7 +325,6 @@ class TestRedGreenFalsification:
     def test_engine_fails_on_bad_base(self):
         """إذا أُعطي base غير سليم، يجب أن يرمي استثناءً عند بناء المقترحات."""
         bad_base = dict(BASE)
-        bad_base = {k: v for k, v in BASE.items()}  # نسخة
         bad_base["max_ast_depth"] = -1  # قيمة غير صالحة
         engine = IntuitiveEngine(base=bad_base, seed=0)
         # يجب أن يتعافى ويُنتج صفر مقترحات أو يرمي استثناءً محدودًا

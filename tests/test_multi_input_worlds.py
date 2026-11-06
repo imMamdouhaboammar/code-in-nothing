@@ -2,11 +2,44 @@
 
 from __future__ import annotations
 
+import json
 from itertools import product
+from pathlib import Path
 
-from cin.contracts import load_genome, load_world
+import pytest
+
+from cin.contracts import ContractError, load_genome, load_world, validate_world
 from cin.synthesis import synthesize_conditional_tree
 from cin.worlds import verify_program
+
+
+@pytest.mark.parametrize(
+    "path",
+    ["examples/world-absdiff.v0.2.yaml", "examples/world-clamp3.v0.3.yaml"],
+)
+def test_result_name_is_reserved_for_output_only(path):
+    world = load_world(path)
+    input_name = next(iter(world["input_domain"]))
+    world["input_domain"]["result"] = world["input_domain"].pop(input_name)
+    with pytest.raises(ContractError):
+        validate_world(world)
+
+
+def test_v03_schema_mirror_matches_package_contract():
+    repo_root = Path(__file__).resolve().parents[1]
+    package_schema = json.loads((repo_root / "cin/schemas/world-spec.v0.3.schema.json").read_text())
+    mirrored_schema = json.loads((repo_root / "schemas/world-spec.v0.3.schema.json").read_text())
+    assert mirrored_schema == package_schema
+
+
+def test_legacy_world_input_positions_ignore_yaml_key_order():
+    world = load_world("examples/world-max2.v0.1.yaml")
+    old_domain = world["input_domain"]
+    world["input_domain"] = {"y": old_domain["y"], "x": old_domain["x"]}
+    world["postcondition"] = {"eq": ["result", "x"]}
+    base = load_genome("examples/seed-genome.v0.1.yaml")["genome"]["base"]
+    verdict = verify_program({"op": "Arg", "index": 0}, world, base)
+    assert verdict.status == "PASS"
 
 
 def test_validate_and_verify_clamp3_world():

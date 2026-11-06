@@ -80,22 +80,56 @@ def run_cegis_loop(
     t0 = time.perf_counter()
     arity = task.arity
 
-    # Step 1: Initialize example points with seed cases or default origin
-    active_points: list[tuple[int, ...]] = list(task.initial_seed_cases)
-    if not active_points:
-        active_points.append(tuple([0] * arity))
+    # Only admitted points constrain the inductive synthesis phase.
+    # Public task preconditions are the source of admissibility, not an output oracle.
+    from .z3_verifier import z3
+
+    def in_precondition(point: tuple[int, ...]) -> bool:
+        if len(point) != arity:
+            return False
+        if task.precondition is None:
+            return True
+        solver = z3.Solver()
+        solver.add(task.precondition([z3.IntVal(value) for value in point]))
+        return solver.check() == z3.sat
+
+    candidates = list(task.initial_seed_cases)
+    if not candidates:
+        candidates = [tuple([0] * arity)]
         for i in range(arity):
-            pt = [0] * arity
-            pt[i] = 1
-            active_points.append(tuple(pt))
+            point = [0] * arity
+            point[i] = 1
+            candidates.append(tuple(point))
+
+    active_points: list[tuple[int, ...]] = list(
+        dict.fromkeys(point for point in candidates if in_precondition(point))
+    )
+    if not active_points and task.precondition is not None:
+        solver = z3.Solver()
+        symbolic = [z3.Int(f"seed_{i}") for i in range(arity)]
+        solver.add(task.precondition(symbolic))
+        if solver.check() == z3.sat:
+            model = solver.model()
+            active_points.append(
+                tuple(model.eval(value, model_completion=True).as_long() for value in symbolic)
+            )
+    if not active_points:
+        return CEGISResult(
+            status="SYNTHESIS_FAILED",
+            expression=None,
+            iterations=0,
+            elapsed_ms=(time.perf_counter() - t0) * 1000,
+        )
 
     seen_points: set[tuple[int, ...]] = set(active_points)
     total_shapes = 0
     total_evals = 0
+    rounds_started = 0
 
     for rnd in range(1, max_rounds + 1):
         if time.perf_counter() - t0 > timeout_sec:
             break
+        rounds_started = rnd
 
         # Calculate oracle values for current active points
         cases_tuple = tuple(active_points)
@@ -166,7 +200,7 @@ def run_cegis_loop(
     return CEGISResult(
         status="EXHAUSTED",
         expression=None,
-        iterations=max_rounds,
+        iterations=rounds_started,
         counterexamples=active_points,
         total_shapes_attempted=total_shapes,
         total_evaluations=total_evals,
