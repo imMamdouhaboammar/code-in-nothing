@@ -17,6 +17,7 @@ from cin.synthesis.decision import (
 )
 from cin.synthesis.library import Macro, MacroRegistry
 from cin.synthesis.sygus import get_sygus_task
+from experiments import run_adaptive_open_discovery as adaptive
 from experiments.run_adaptive_open_discovery import (
     ADAPTIVE_STAGES,
     choose_adaptive_stages,
@@ -213,3 +214,48 @@ def test_supervisor_fails_closed_if_memory_is_not_observable(monkeypatch):
     assert result["status"] == "WORKER_FAILED"
     assert result["work_units"] is None
     assert "RSS" in result["note"]
+
+
+def test_worker_finishing_at_deadline_check_keeps_proof(monkeypatch):
+    import psutil
+
+    class CompletedQueue:
+        def get(self, timeout):
+            return {"record": {"status": "PROVED", "proof": "SYMBOLIC_PROVED", "peak_rss_mib": 7.0}}
+
+        def close(self):
+            return None
+
+        def join_thread(self):
+            return None
+
+    class CompletionRaceProcess:
+        pid = 1234
+        exitcode = 0
+        alive = True
+
+        def start(self):
+            return None
+
+        def is_alive(self):
+            return self.alive
+
+        def join(self, timeout=None):
+            self.alive = False
+
+        def terminate(self):
+            raise AssertionError("A completed proof must not be terminated")
+
+    class CompletionRaceContext:
+        def Queue(self):
+            return CompletedQueue()
+
+        def Process(self, target, args):
+            return CompletionRaceProcess()
+
+    monkeypatch.setattr(adaptive.mp, "get_context", lambda _: CompletionRaceContext())
+    monkeypatch.setattr(psutil, "Process", lambda _: object())
+    tiny = replace(ADAPTIVE_STAGES[0], name="deadline_race", wall_seconds=1e-12)
+    result = run_supervised_stage("max2", {}, tiny)
+    assert result["status"] == "PROVED"
+    assert result["proof"] == "SYMBOLIC_PROVED"

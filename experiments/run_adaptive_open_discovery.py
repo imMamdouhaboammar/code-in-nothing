@@ -226,7 +226,11 @@ def run_supervised_stage(
         while process.is_alive():
             elapsed = time.perf_counter() - started
             if elapsed >= stage.wall_seconds:
-                interrupted = "TIMEOUT"
+                # Recheck completion before discarding a proof at the deadline.
+                # The worker may have exited after the loop's liveness check.
+                process.join(timeout=0)
+                if process.is_alive():
+                    interrupted = "TIMEOUT"
                 break
             try:
                 sampled_peak = max(sampled_peak, monitor.memory_info().rss / (1024 * 1024))
