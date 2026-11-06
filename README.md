@@ -68,6 +68,23 @@ flowchart TD
 
 ---
 
+## Flagship Research Horizon: Breaking the "Frozen Weights" Impasse via Real-Time Structural Self-Evolution
+
+> [!IMPORTANT]
+> ### Beyond Token Simulation: Intrinsic Deliberation & Real-Time Self-Evolution
+> Current conversational AI remains trapped in the **"frozen weights" dilemma**: models cannot learn or adapt during inference, forcing the industry into an unsustainable treadmill of repeatedly re-training new foundational releases from scratch at multi-million-dollar costs. Meanwhile, reasoning is merely simulated via autoregressive next-token prediction without formal semantic guarantees.
+>
+> CIN investigates the foundational transition to **intrinsic programmatic deliberation before utterance** and **real-time structural self-evolution**:
+>
+> - **Breaking the "Frozen Weights" Impasse:** Instead of treating model weights as static matrices that require expensive offline retraining clusters to update, CIN engineers a system that modifies its internal algorithmic structure (typed AST compositions, decision logic, and hereditary genes) in real-time during live execution.
+> - **Pre-Utterance Deliberation (System 2):** Rather than generating conversational tokens that merely *mimic* reasoning, candidate algorithmic logic is synthesized as typed, bounded Abstract Syntax Trees (CIN-IR) and formally verified against strict operational invariants prior to output generation.
+> - **Self-Directed Evolution via Evolving Worlds:** The model develops and updates itself dynamically based on lived experience and successful trials in mutating environments, admitting verified improvements into an immutable, hash-chained memory ledger.
+> - **Durable, Independent Memory & Zero-Cost Continual Learning:** In contrast to volatile KV caches or ephemeral context windows, verified programs and abstractions are anchored into append-only, SHA-256 hash-chained journals (`events.jsonl`) and hereditary genome registries—enabling instantaneous, weightless adaptation with strictly zero catastrophic forgetting.
+>
+> 📖 **Full Research Specification & Technical Mechanics:** [Intrinsic Programmatic Deliberation & Continual Synthesis](docs/research/INTRINSIC-DELIBERATION-AND-CONTINUAL-SYNTHESIS.md)
+
+---
+
 ## Quickstart
 
 Requirements: **Python 3.11+**.
@@ -212,6 +229,7 @@ code-in-nothing/
 Explore the complete system specification and research documents:
 
 - [`docs/INDEX.md`](docs/INDEX.md): Master documentation guide.
+- [`docs/research/INTRINSIC-DELIBERATION-AND-CONTINUAL-SYNTHESIS.md`](docs/research/INTRINSIC-DELIBERATION-AND-CONTINUAL-SYNTHESIS.md): Research horizon on intrinsic programmatic deliberation, persistent memory, and weightless adaptation.
 - [`docs/specs/2026-10-18-cin-integrated-system-spec-v0.4.md`](docs/specs/2026-10-18-cin-integrated-system-spec-v0.4.md): Integrated v0.4 system specification.
 - [`docs/architecture/SYSTEM.md`](docs/architecture/SYSTEM.md): System architecture and data flow.
 - [`docs/architecture/CONTRACTS.md`](docs/architecture/CONTRACTS.md): Formal contract definitions.
