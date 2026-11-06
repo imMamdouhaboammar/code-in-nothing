@@ -12,7 +12,50 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from cin.ir import IRViolation, Limits, canonical_hash, check_tree, run_ir_args
-from cin.worlds import _ordered_input_names, check_formula
+
+
+def _public_world_names(world: dict, arity: int) -> list[str]:
+    """Read only the public world signature; do not depend on verifier internals."""
+    domain = world.get("input_domain", {})
+    if not domain:
+        return [f"arg{i}" for i in range(arity)]
+    if world.get("api_version") == "cin.world/v0.1" and set(domain) == {"x", "y"}:
+        return ["x", "y"]
+    return list(domain)
+
+
+def _public_world_term(node: Any, values: dict[str, int]) -> int:
+    if type(node) is int:
+        return node
+    if isinstance(node, str):
+        if node not in values:
+            raise ValueError(f"Undeclared public world term: {node}")
+        return values[node]
+    if isinstance(node, dict) and len(node) == 1:
+        op, args = next(iter(node.items()))
+        if op in {"add", "sub"}:
+            a, b = (_public_world_term(term, values) for term in args)
+            return a + b if op == "add" else a - b
+    raise ValueError("Unsupported public world term")
+
+
+def _public_world_condition(formula: dict, values: dict[str, int]) -> bool:
+    """Generator-side interpretation of the declared specification grammar."""
+    if not isinstance(formula, dict) or len(formula) != 1:
+        raise ValueError("Invalid public world formula")
+    op, args = next(iter(formula.items()))
+    if op == "and":
+        return all(_public_world_condition(part, values) for part in args)
+    if op == "or":
+        return any(_public_world_condition(part, values) for part in args)
+    a, b = (_public_world_term(term, values) for term in args)
+    if op == "eq":
+        return a == b
+    if op == "gte":
+        return a >= b
+    if op == "lte":
+        return a <= b
+    raise ValueError("Unsupported public world formula operation")
 
 
 def _size_depth(node: dict) -> tuple[int, int]:
@@ -239,16 +282,13 @@ def synthesize_conditional_tree(
     constants = base.get("allowed_constants", [0, 1])
     arity = len(base.get("input_types", ("Int", "Int")))
     if isinstance(target_spec, dict) and "postcondition" in target_spec:
-        domain = target_spec.get("input_domain", {})
-        var_names = (
-            _ordered_input_names(target_spec) if domain else [f"arg{i}" for i in range(arity)]
-        )
+        var_names = _public_world_names(target_spec, arity)
         precondition = target_spec.get("precondition")
         if precondition is not None:
             cases = tuple(
                 pt
                 for pt in cases
-                if check_formula(
+                if _public_world_condition(
                     precondition,
                     {**dict(zip(var_names, pt)), "result": 0},
                 )
@@ -306,16 +346,13 @@ def synthesize_conditional_tree(
 
     elif isinstance(target_spec, dict) and "postcondition" in target_spec:
         post = target_spec["postcondition"]
-        domain = target_spec.get("input_domain", {})
-        var_names = (
-            _ordered_input_names(target_spec) if domain else [f"arg{i}" for i in range(arity)]
-        )
+        var_names = _public_world_names(target_spec, arity)
 
         def is_correct(idx: int, val: int) -> bool:
             pt = cases[idx]
             values = {k: v for k, v in zip(var_names, pt)}
             values["result"] = val
-            return check_formula(post, values)
+            return _public_world_condition(post, values)
 
     else:
         raise ValueError("unsupported target_spec format")
@@ -362,7 +399,8 @@ def synthesize_conditional_tree(
                         shapes_attempted=shapes,
                     )
             except (IRViolation, ValueError):
-                pass
+                # An invalid expansion cannot be used as a search subterm either.
+                continue
 
         if cov:
             valid_subterms.append(term)
@@ -525,6 +563,6 @@ def synthesize_conditional_tree(
                     shapes_attempted=shapes,
                 )
         except (IRViolation, ValueError):
-            pass
+            return None
 
     return None

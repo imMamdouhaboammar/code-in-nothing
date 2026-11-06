@@ -35,7 +35,7 @@ def _measure_task(world: dict, base: dict, cases: tuple[tuple[int, ...], ...]) -
     return {
         "task_id": world["id"],
         "status": status,
-        "proof_scope": "finite_world" if verifier_calls else "none",
+        "proof_scope": "finite_world" if status == "PASS" else "none",
         "synthesized_ast": result.expression if result is not None else None,
         "candidate_hash": canonical_hash(result.expression) if result is not None else None,
         "ast_nodes": result.nodes if result is not None else None,

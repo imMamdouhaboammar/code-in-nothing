@@ -102,7 +102,7 @@
 
 أنا شايف إن الرقم ده في حد ذاته درس، لأنه بيورينا قد إيه إن فكرة الوصول للحل من خلال البحث في كل الاحتمالات ممكن تبقى مكلفة جدا حتى في مسائل شكلها بسيط
 
-والنتائج الأصلية متوثقة في [توثيق تجربة M1 والأرقام وطريقة إعادة تشغيلها](https://github.com/imMamdouhaboammar/code-in-nothing/blob/main/docs/research/2026-10-18-m1-math-synthesis-evidence.md)
+رقم `max2` تقدر تراجعه في [نتائج التجربة الأولى](https://github.com/imMamdouhaboammar/code-in-nothing/blob/main/experiments/RESULTS.md)، وأرقام `min2` و`absdiff` موجودة في [توثيق M1 وطريقة إعادة تشغيلها](https://github.com/imMamdouhaboammar/code-in-nothing/blob/main/docs/research/2026-10-18-m1-math-synthesis-evidence.md)
 
 ## وهنا بدأت المشكلة اللي بتوجع فعلا
 

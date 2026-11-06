@@ -343,7 +343,8 @@ def verify_spec_symbolic(program: dict, spec: str, arity: int) -> SymbolicVerdic
         try:
             feasible_regions = len(ast_to_piecewise_affine(program, arity))
         except (RuntimeError, ValueError, KeyError, IndexError):
-            pass
+            # Region counts are diagnostics; the independent Z3 verdict still stands.
+            feasible_regions = 0
 
     return SymbolicVerdict(
         status=verdict.status,

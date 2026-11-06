@@ -18,6 +18,24 @@ from cin.synthesis.decision import SynthesisWork
 from cin.worlds import verify_program
 
 
+def test_failed_world_verification_does_not_claim_finite_proof(monkeypatch):
+    import experiments.run_decision_synthesis as benchmark
+    from cin.synthesis.decision import DecisionResult
+    from cin.worlds import Verdict
+
+    candidate = {"op": "Arg", "index": 0}
+    monkeypatch.setattr(
+        benchmark,
+        "synthesize_conditional_tree",
+        lambda *args, **kwargs: DecisionResult(candidate, 1, 1, 1, 1),
+    )
+    monkeypatch.setattr(benchmark, "verify_program", lambda *args: Verdict("INVALID", 0))
+    result = benchmark._measure_task({"id": "invalid"}, {}, ((0,),))
+    assert result["verifier_calls"] == 1
+    assert result["status"] == "INVALID"
+    assert result["proof_scope"] == "none"
+
+
 def test_benchmark_checkout_can_prepare_and_verify_write_locks(tmp_path, monkeypatch):
     import experiments.adversarial_harness as harness
 
@@ -50,6 +68,29 @@ def test_benchmark_lock_setup_rejects_tampered_inputs(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match="TAMPERING_DETECTED"):
         harness.prepare_benchmark_write_locks()
     assert target.stat().st_mode & 0o200
+
+
+def test_world_target_search_never_calls_verifier_formula_helpers(monkeypatch):
+    import cin.synthesis.decision as decision
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("synthesis depended on verifier internals")
+
+    monkeypatch.setattr(decision, "check_formula", forbidden, raising=False)
+    monkeypatch.setattr(decision, "_ordered_input_names", forbidden, raising=False)
+    world = load_world("examples/world-clamp3.v0.3.yaml")
+    base = deepcopy(load_genome("examples/seed-genome.v0.1.yaml")["genome"]["base"])
+    base["cin_ir_version"] = "0.2"
+    base["input_types"] = ["Int"] * 3
+    result = decision.synthesize_conditional_tree(
+        ((0, -1, 1),),
+        world,
+        base,
+        subterms=[{"op": "Arg", "index": 0}],
+        predicates=[],
+    )
+    assert result is not None
+    assert result.expression == {"op": "Arg", "index": 0}
 
 
 def test_high_arity_stress_probes_vary_each_input_independently():

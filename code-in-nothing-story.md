@@ -64,7 +64,7 @@ In the repository's recorded finite-domain experiments, finding `max2` took 85 c
 
 All three were small problems. All three were solvable. And one of them made the cost of searching painfully obvious
 
-Those figures come from a particular implementation and benchmark setup, not a general speed claim. The [`M1 measurement and reproduction notes`](https://github.com/imMamdouhaboammar/code-in-nothing/blob/main/docs/research/2026-10-18-m1-math-synthesis-evidence.md) record is there for anyone who wants to inspect the evidence
+These numbers came from two recorded setups. The `max2` count belongs to the earlier v0.1 pilot in [`experiments/RESULTS.md`](https://github.com/imMamdouhaboammar/code-in-nothing/blob/main/experiments/RESULTS.md). The `min2` and `absdiff` counts come from the later [`M1 measurements and reproduction notes`](https://github.com/imMamdouhaboammar/code-in-nothing/blob/main/docs/research/2026-10-18-m1-math-synthesis-evidence.md). Neither setup establishes a general speed claim
 
 There is something useful about being confronted by 229,135 shape attempts while trying to solve a function a programmer might write in one line. It's an excellent way to lose confidence in a simplistic theory of intelligence
 
@@ -132,7 +132,7 @@ The current verifier can exhaustively check a defined finite input world. If tha
 
 It's still possible for the program to fail on `10,000` and `-7`, or on a combination outside the chosen domain
 
-For the supported linear-integer CIN-IR fragment, CIN now also has optional Z3-backed equivalence and specification checks. When Z3 proves the negation of a supported claim unsatisfiable, that claim holds over unbounded integer inputs under its stated precondition. These checks are separate from finite-world verification, and timeout or an unsupported expression must stay UNKNOWN. Other properties may still require invariants, induction, or additional proof methods
+For the supported linear-integer CIN-IR fragment, CIN now also has optional Z3-backed equivalence and specification checks. When Z3 proves the negation of a supported claim unsatisfiable, the mathematical claim holds over unbounded integers under its stated precondition. The interpreter still has bit-size and operation limits, so that proof does not promise successful execution for every integer input. These checks are separate from finite-world verification, and timeout or an unsupported expression must stay UNKNOWN. Other properties may still require invariants, induction, or additional proof methods
 
 And some program properties are undecidable in general, so there will never be a universal verifier that settles every possible question about arbitrary software
 

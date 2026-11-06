@@ -141,11 +141,13 @@ def main():
         results_table.append(
             {
                 "task": task_name,
+                "measurement_order": ["arm0", "arm1", "arm2"],
                 "arm0_status": arm0_status,
                 "arm0_shapes": arm0_shapes,
                 "arm0_time_ms": arm0_time_ms,
                 "arm1_status": arm1_res.status,
                 "arm1_rounds": arm1_res.iterations,
+                "arm1_time_ms": arm1_time_ms,
                 "arm2_status": arm2_verdict.status,
                 "arm2_provenance": arm2_verdict.provenance,
                 "arm2_time_ms": arm2_time_ms,
@@ -176,6 +178,9 @@ def main():
         "  PROVED denotes an UNSAT negated specification within the task's declared precondition."
     )
     print("  EXHAUSTED/TIMEOUT are budget outcomes, not proofs of synthesis impossibility.")
+    print(
+        "  Arms ran in fixed order (Arm 0, Arm 1, Arm 2); cross-arm timings are not controlled for warm-up or caching."
+    )
     print("  Task ordering and inherited macros can affect later results; no generalization claim.")
     print("=" * 80)
 

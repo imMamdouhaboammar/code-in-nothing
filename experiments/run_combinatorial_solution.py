@@ -142,7 +142,6 @@ def main():
 
     if res_clamp is None:
         print("  Clamp3 Synthesis         : FAILED (no expression found within the search budget)")
-        verdict_clamp = None
     else:
         print(f"  Clamp3 Synthesized AST  : {res_clamp.expression}")
         print(f"  AST Nodes / Depth       : {res_clamp.nodes} nodes, depth {res_clamp.depth}")
