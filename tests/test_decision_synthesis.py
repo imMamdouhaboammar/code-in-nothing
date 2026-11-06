@@ -11,27 +11,27 @@ import pytest
 from cin.contracts import load_genome, load_world, validate_world
 from cin.ir import Limits, run_ir_args
 from cin.synthesis import (
+    decision,
     generate_candidate_predicates,
     synthesize_conditional_tree,
 )
-from cin.synthesis.decision import SynthesisWork
 from cin.worlds import verify_program
-from experiments import adversarial_harness
+from experiments import adversarial_harness, run_decision_synthesis
 
 
 def test_failed_world_verification_does_not_claim_finite_proof(monkeypatch):
-    import experiments.run_decision_synthesis as benchmark
-    from cin.synthesis.decision import DecisionResult
     from cin.worlds import Verdict
 
     candidate = {"op": "Arg", "index": 0}
     monkeypatch.setattr(
-        benchmark,
+        run_decision_synthesis,
         "synthesize_conditional_tree",
-        lambda *args, **kwargs: DecisionResult(candidate, 1, 1, 1, 1),
+        lambda *args, **kwargs: decision.DecisionResult(candidate, 1, 1, 1, 1),
     )
-    monkeypatch.setattr(benchmark, "verify_program", lambda *args: Verdict("INVALID", 0))
-    result = benchmark._measure_task({"id": "invalid"}, {}, ((0,),))
+    monkeypatch.setattr(
+        run_decision_synthesis, "verify_program", lambda *args: Verdict("INVALID", 0)
+    )
+    result = run_decision_synthesis._measure_task({"id": "invalid"}, {}, ((0,),))
     assert result["verifier_calls"] == 1
     assert result["status"] == "INVALID"
     assert result["proof_scope"] == "none"
@@ -68,8 +68,6 @@ def test_benchmark_lock_setup_rejects_tampered_inputs(tmp_path, monkeypatch):
 
 
 def test_world_target_search_never_calls_verifier_formula_helpers(monkeypatch):
-    import cin.synthesis.decision as decision
-
     def forbidden(*args, **kwargs):
         raise AssertionError("synthesis depended on verifier internals")
 
@@ -100,9 +98,7 @@ def test_high_arity_stress_probes_vary_each_input_independently():
 
 
 def test_decision_benchmark_json_contains_actual_cost_accounting():
-    from experiments.run_decision_synthesis import run_decision_experiments
-
-    report = run_decision_experiments()
+    report = run_decision_synthesis.run_decision_experiments()
     assert len(report["results"]) == 3
     for row in report["results"]:
         assert row["primitive_subterms"] > 0
@@ -128,7 +124,7 @@ def test_adversarial_harness_reports_measured_generation_work():
 
 def test_generation_work_counts_candidates_before_observational_pruning():
     base = dict(load_genome("examples/seed-genome.v0.1.yaml")["genome"]["base"])
-    work = SynthesisWork()
+    work = decision.SynthesisWork()
     cases = tuple(product((-1, 0, 1), repeat=2))
     result = synthesize_conditional_tree(cases, tuple(max(x, y) for x, y in cases), base, work=work)
     assert result is not None
@@ -339,7 +335,6 @@ def test_world_precondition_excludes_invalid_cases_before_routing():
 
 
 def test_missing_nested_macro_does_not_crash_subterm_generation():
-    from cin.synthesis.decision import generate_candidate_subterms
     from cin.synthesis.library import Macro, MacroRegistry
 
     bad = Macro(
@@ -354,7 +349,7 @@ def test_missing_nested_macro_does_not_crash_subterm_generation():
         },
         origin_hash="adversarial-test",
     )
-    terms = generate_candidate_subterms(
+    terms = decision.generate_candidate_subterms(
         arity=2,
         allowed={"Arg", "Add"},
         constants=[],
