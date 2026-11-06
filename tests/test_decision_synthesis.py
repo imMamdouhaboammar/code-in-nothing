@@ -16,6 +16,7 @@ from cin.synthesis import (
 )
 from cin.synthesis.decision import SynthesisWork
 from cin.worlds import verify_program
+from experiments import adversarial_harness
 
 
 def test_failed_world_verification_does_not_claim_finite_proof(monkeypatch):
@@ -37,8 +38,6 @@ def test_failed_world_verification_does_not_claim_finite_proof(monkeypatch):
 
 
 def test_benchmark_checkout_can_prepare_and_verify_write_locks(tmp_path, monkeypatch):
-    import experiments.adversarial_harness as harness
-
     target = tmp_path / "schemas/sample.json"
     target.parent.mkdir()
     target.write_text("test payload", encoding="utf-8")
@@ -46,27 +45,25 @@ def test_benchmark_checkout_can_prepare_and_verify_write_locks(tmp_path, monkeyp
     manifest.parent.mkdir()
     digest = hashlib.sha256(target.read_bytes()).hexdigest()
     manifest.write_text(f"{digest}  schemas/sample.json\n", encoding="utf-8")
-    monkeypatch.setattr(harness, "ROOT", tmp_path)
+    monkeypatch.setattr(adversarial_harness, "ROOT", tmp_path)
 
     with pytest.raises(PermissionError):
-        harness.verify_filesystem_integrity()
-    harness.prepare_benchmark_write_locks()
+        adversarial_harness.verify_filesystem_integrity()
+    adversarial_harness.prepare_benchmark_write_locks()
     assert target.stat().st_mode & 0o222 == 0
-    harness.verify_filesystem_integrity()
+    adversarial_harness.verify_filesystem_integrity()
 
 
 def test_benchmark_lock_setup_rejects_tampered_inputs(tmp_path, monkeypatch):
-    import experiments.adversarial_harness as harness
-
     target = tmp_path / "sample.json"
     target.write_text("tampered", encoding="utf-8")
     manifest = tmp_path / ".benchmarks/checksums.sha256"
     manifest.parent.mkdir()
     manifest.write_text(f"{'0' * 64}  sample.json\n", encoding="utf-8")
-    monkeypatch.setattr(harness, "ROOT", tmp_path)
+    monkeypatch.setattr(adversarial_harness, "ROOT", tmp_path)
 
     with pytest.raises(ValueError, match="TAMPERING_DETECTED"):
-        harness.prepare_benchmark_write_locks()
+        adversarial_harness.prepare_benchmark_write_locks()
     assert target.stat().st_mode & 0o200
 
 
@@ -94,9 +91,7 @@ def test_world_target_search_never_calls_verifier_formula_helpers(monkeypatch):
 
 
 def test_high_arity_stress_probes_vary_each_input_independently():
-    from experiments.adversarial_harness import make_high_arity_cases
-
-    cases = make_high_arity_cases(8)
+    cases = adversarial_harness.make_high_arity_cases(8)
     assert len(cases) >= 24
     assert all(len(case) == 8 for case in cases)
     for axis in range(8):
@@ -122,11 +117,9 @@ def test_decision_benchmark_json_contains_actual_cost_accounting():
 
 
 def test_adversarial_harness_reports_measured_generation_work():
-    from experiments.adversarial_harness import instrumented_synthesize
-
     base = dict(load_genome("examples/seed-genome.v0.1.yaml")["genome"]["base"])
     world = load_world("examples/world-min2.v0.1.yaml")
-    _, cost = instrumented_synthesize(world, base, timeout_sec=5)
+    _, cost = adversarial_harness.instrumented_synthesize(world, base, timeout_sec=5)
     assert cost.primitive_subterms > 0
     assert cost.primitive_predicates > 0
     assert cost.probe_evaluations >= cost.primitive_subterms
