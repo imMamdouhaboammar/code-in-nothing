@@ -219,6 +219,7 @@ def run_supervised_stage(
     process.start()
     sampled_peak = 0.0
     interrupted = None
+    monitor_error = None
 
     try:
         monitor = psutil.Process(process.pid)
@@ -229,8 +230,15 @@ def run_supervised_stage(
                 break
             try:
                 sampled_peak = max(sampled_peak, monitor.memory_info().rss / (1024 * 1024))
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                pass
+            except psutil.NoSuchProcess:
+                # Worker exited between the liveness check and the RSS sample.
+                process.join(timeout=0.05)
+                continue
+            except psutil.AccessDenied as exc:
+                # A missing RSS measurement invalidates the memory safeguard.
+                interrupted = "WORKER_FAILED"
+                monitor_error = f"Unable to enforce RSS limit: {exc}"
+                break
             if sampled_peak > rss_limit_mib:
                 interrupted = "MEMOUT"
                 break
@@ -255,7 +263,8 @@ def run_supervised_stage(
                 "cpu_ms": None,
                 "solver_wall_ms": None,
                 "macros_available": len(macro_data),
-                "note": "Supervised worker interrupted; partial work counters unavailable",
+                "note": monitor_error
+                or "Supervised worker interrupted; partial work counters unavailable",
             }
         else:
             try:

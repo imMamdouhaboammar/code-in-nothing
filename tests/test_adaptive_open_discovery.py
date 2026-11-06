@@ -199,3 +199,17 @@ def test_supervised_stage_memory_ceiling_interrupts_worker():
     assert result["status"] == "MEMOUT"
     assert result["work_units"] is None
     assert result["peak_rss_mib"] > 1
+
+
+def test_supervisor_fails_closed_if_memory_is_not_observable(monkeypatch):
+    import psutil
+
+    class InaccessibleMemory:
+        def memory_info(self):
+            raise psutil.AccessDenied(pid=9876)
+
+    monkeypatch.setattr(psutil, "Process", lambda pid: InaccessibleMemory())
+    result = run_supervised_stage("max2", {}, ADAPTIVE_STAGES[0], rss_limit_mib=256)
+    assert result["status"] == "WORKER_FAILED"
+    assert result["work_units"] is None
+    assert "RSS" in result["note"]
