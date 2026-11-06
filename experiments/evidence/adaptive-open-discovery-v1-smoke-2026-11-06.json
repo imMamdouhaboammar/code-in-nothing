@@ -1,0 +1,1358 @@
+{
+  "stage": "adaptive_exploratory_not_confirmatory",
+  "manifest": {
+    "training": [
+      "max2",
+      "min2",
+      "absdiff"
+    ],
+    "heldout": [
+      "max3",
+      "min3",
+      "clamp3",
+      "median3",
+      "max4"
+    ],
+    "stress": [],
+    "seeds": [
+      2
+    ],
+    "stages": [
+      {
+        "name": "P0",
+        "ast_depth": 7,
+        "ast_nodes": 25,
+        "constants": [
+          0,
+          1
+        ],
+        "search": {
+          "subterm_depth": 3,
+          "predicate_term_depth": 2,
+          "max_macro_arity": 2,
+          "macro_combination_limit": null,
+          "branch_attempt_limit": 512,
+          "include_nullary_macros": false
+        },
+        "wall_seconds": 2.0
+      },
+      {
+        "name": "P1",
+        "ast_depth": 9,
+        "ast_nodes": 49,
+        "constants": [
+          -1,
+          0,
+          1
+        ],
+        "search": {
+          "subterm_depth": 4,
+          "predicate_term_depth": 3,
+          "max_macro_arity": 4,
+          "macro_combination_limit": 2000,
+          "branch_attempt_limit": 2048,
+          "include_nullary_macros": true
+        },
+        "wall_seconds": 3.0
+      },
+      {
+        "name": "P2",
+        "ast_depth": 12,
+        "ast_nodes": 96,
+        "constants": [
+          -2,
+          -1,
+          0,
+          1,
+          2
+        ],
+        "search": {
+          "subterm_depth": 5,
+          "predicate_term_depth": 4,
+          "max_macro_arity": 8,
+          "macro_combination_limit": 8000,
+          "branch_attempt_limit": null,
+          "include_nullary_macros": true
+        },
+        "wall_seconds": 4.0
+      }
+    ],
+    "rss_limit_mib": 400,
+    "source_sha256": "3a96fea44c490cc1a4064a2552ef79f82e8a1ae74d4401d34e5f00e8687ef9e7"
+  },
+  "manifest_sha256": "3e6df29975b71c7e223f346fb9b80d38b30988a96e8fb510a89ae68534e6bd01",
+  "host": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit",
+    "python": "3.12.13 (main, Jul 18 2026, 16:55:18) [Clang 22.1.3 ]",
+    "git_revision": "5ff1cc79f71f92f37edce15125e2ce2c49948e7f",
+    "source_sha256": "3a96fea44c490cc1a4064a2552ef79f82e8a1ae74d4401d34e5f00e8687ef9e7",
+    "pid": 78668
+  },
+  "training": [
+    {
+      "task": "max2",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "work": {
+        "primitive_subterms": 273,
+        "primitive_predicates": 273,
+        "subterm_representatives": 52,
+        "predicate_representatives": 2,
+        "probe_evaluations": 1200,
+        "auxiliary_scoring_steps": 3,
+        "macro_combinations_tried": 0
+      },
+      "shapes_attempted": 55,
+      "candidate_evaluations": 108,
+      "verifier_invocations": 1,
+      "verifier_ms": 6.361583000398241,
+      "work_units": 1805,
+      "wall_ms": 13.28
+    },
+    {
+      "task": "min2",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "work": {
+        "primitive_subterms": 273,
+        "primitive_predicates": 273,
+        "subterm_representatives": 52,
+        "predicate_representatives": 2,
+        "probe_evaluations": 1200,
+        "auxiliary_scoring_steps": 2,
+        "macro_combinations_tried": 0
+      },
+      "shapes_attempted": 55,
+      "candidate_evaluations": 108,
+      "verifier_invocations": 1,
+      "verifier_ms": 2.359333997446811,
+      "work_units": 1804,
+      "wall_ms": 8.78
+    },
+    {
+      "task": "absdiff",
+      "status": "PROVED",
+      "proof": "SYMBOLIC_PROVED",
+      "work": {
+        "primitive_subterms": 1533,
+        "primitive_predicates": 1539,
+        "subterm_representatives": 342,
+        "predicate_representatives": 39,
+        "probe_evaluations": 13827,
+        "auxiliary_scoring_steps": 11992,
+        "macro_combinations_tried": 0
+      },
+      "shapes_attempted": 386,
+      "candidate_evaluations": 1539,
+      "verifier_invocations": 3,
+      "verifier_ms": 8.161082998412894,
+      "work_units": 29280,
+      "wall_ms": 78.4
+    }
+  ],
+  "discovery": {
+    "elapsed_ms": 0.405,
+    "work": {
+      "programs_seen": 3,
+      "programs_accepted": 3,
+      "subtrees_visited": 22,
+      "type_rejected": 3,
+      "unique_macros": 5,
+      "duplicate_subtrees": 14
+    },
+    "cost_lower_bound_units": 39,
+    "library_hash": "a03f52cd515d6858b2ea9d3b55508f956f37069790f1e1278cf283f1047c5713",
+    "macros": {
+      "discovered_01cbdc131d2d957e": {
+        "name": "discovered_01cbdc131d2d957e",
+        "arity": 2,
+        "body": {
+          "op": "Sub",
+          "args": [
+            {
+              "op": "Arg",
+              "index": 0
+            },
+            {
+              "op": "Arg",
+              "index": 1
+            }
+          ]
+        },
+        "origin_hash": "01cbdc131d2d957efe5ec0c8590941bb5595604bd1a2509f143210bfeba01040",
+        "description": "Integer subtree reused from independently proved training program",
+        "metadata": {
+          "origin_task_ids": [
+            "absdiff"
+          ],
+          "discovery_mode": "all_typed_subtrees_no_threshold",
+          "search_usable": true,
+          "complete_training_program": false
+        }
+      },
+      "discovered_2a4a39647279cef1": {
+        "name": "discovered_2a4a39647279cef1",
+        "arity": 2,
+        "body": {
+          "op": "If",
+          "args": [
+            {
+              "op": "LessThan",
+              "args": [
+                {
+                  "op": "Arg",
+                  "index": 0
+                },
+                {
+                  "op": "Arg",
+                  "index": 1
+                }
+              ]
+            },
+            {
+              "op": "Arg",
+              "index": 1
+            },
+            {
+              "op": "Arg",
+              "index": 0
+            }
+          ]
+        },
+        "origin_hash": "2a4a39647279cef199e96ec1c6c11bbdd90c3d50547067c4afed83cc883b2f43",
+        "description": "Integer subtree reused from independently proved training program",
+        "metadata": {
+          "origin_task_ids": [
+            "max2"
+          ],
+          "discovery_mode": "all_typed_subtrees_no_threshold",
+          "search_usable": true,
+          "complete_training_program": true
+        }
+      },
+      "discovered_3cff4c3c2e1fff52": {
+        "name": "discovered_3cff4c3c2e1fff52",
+        "arity": 2,
+        "body": {
+          "op": "If",
+          "args": [
+            {
+              "op": "LessThan",
+              "args": [
+                {
+                  "op": "Arg",
+                  "index": 0
+                },
+                {
+                  "op": "Arg",
+                  "index": 1
+                }
+              ]
+            },
+            {
+              "op": "Arg",
+              "index": 0
+            },
+            {
+              "op": "Arg",
+              "index": 1
+            }
+          ]
+        },
+        "origin_hash": "3cff4c3c2e1fff526b1e48f4f051dac3477dd6122852d7990cffe42719fdbc9f",
+        "description": "Integer subtree reused from independently proved training program",
+        "metadata": {
+          "origin_task_ids": [
+            "min2"
+          ],
+          "discovery_mode": "all_typed_subtrees_no_threshold",
+          "search_usable": true,
+          "complete_training_program": true
+        }
+      },
+      "discovered_42d5f158b2968b47": {
+        "name": "discovered_42d5f158b2968b47",
+        "arity": 1,
+        "body": {
+          "op": "Arg",
+          "index": 0
+        },
+        "origin_hash": "42d5f158b2968b4744864e9d2ccf288db3d2d4a585752a61f2156adc17a3f987",
+        "description": "Integer subtree reused from independently proved training program",
+        "metadata": {
+          "origin_task_ids": [
+            "absdiff",
+            "max2",
+            "min2"
+          ],
+          "discovery_mode": "all_typed_subtrees_no_threshold",
+          "search_usable": true,
+          "complete_training_program": false
+        }
+      },
+      "discovered_834179df86cc9393": {
+        "name": "discovered_834179df86cc9393",
+        "arity": 2,
+        "body": {
+          "op": "If",
+          "args": [
+            {
+              "op": "LessThan",
+              "args": [
+                {
+                  "op": "Arg",
+                  "index": 0
+                },
+                {
+                  "op": "Arg",
+                  "index": 1
+                }
+              ]
+            },
+            {
+              "op": "Sub",
+              "args": [
+                {
+                  "op": "Arg",
+                  "index": 1
+                },
+                {
+                  "op": "Arg",
+                  "index": 0
+                }
+              ]
+            },
+            {
+              "op": "Sub",
+              "args": [
+                {
+                  "op": "Arg",
+                  "index": 0
+                },
+                {
+                  "op": "Arg",
+                  "index": 1
+                }
+              ]
+            }
+          ]
+        },
+        "origin_hash": "834179df86cc9393eb20ed862d2fa8ea1844e60d73bc4ba18ecfb5901c1d55eb",
+        "description": "Integer subtree reused from independently proved training program",
+        "metadata": {
+          "origin_task_ids": [
+            "absdiff"
+          ],
+          "discovery_mode": "all_typed_subtrees_no_threshold",
+          "search_usable": true,
+          "complete_training_program": true
+        }
+      }
+    }
+  },
+  "heldout": [
+    {
+      "task": "clamp3",
+      "seed": 2,
+      "category": "heldout",
+      "arm": "no_inheritance",
+      "status": "PROVED",
+      "proved": true,
+      "total_completed_work_units": 2181,
+      "partial_work_unavailable": false,
+      "total_process_wall_ms": 159.19,
+      "peak_rss_mib": 65.48,
+      "attempts": [
+        {
+          "task": "clamp3",
+          "status": "PROVED",
+          "proof": "SYMBOLIC_PROVED",
+          "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+          "work": {
+            "primitive_subterms": 200,
+            "primitive_predicates": 198,
+            "subterm_representatives": 40,
+            "predicate_representatives": 5,
+            "probe_evaluations": 1329,
+            "auxiliary_scoring_steps": 406,
+            "macro_combinations_tried": 0
+          },
+          "shapes_attempted": 47,
+          "candidate_evaluations": 135,
+          "verifier_invocations": 1,
+          "verifier_ms": 3.16,
+          "iterations": 1,
+          "cpu_ms": 14.11,
+          "solver_wall_ms": 14.1,
+          "peak_rss_mib": 65.48,
+          "work_units": 2181,
+          "expression_hash": "33d2d15a5cba32663cbe5ea47b0b47d7f443ff7e84f9da201ec03940fc976f87",
+          "macros_available": 0,
+          "process_wall_ms": 159.19,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        }
+      ]
+    },
+    {
+      "task": "clamp3",
+      "seed": 2,
+      "category": "heldout",
+      "arm": "open_inheritance",
+      "status": "PROVED",
+      "proved": true,
+      "total_completed_work_units": 14260,
+      "partial_work_unavailable": false,
+      "total_process_wall_ms": 367.91,
+      "peak_rss_mib": 65.61,
+      "attempts": [
+        {
+          "task": "clamp3",
+          "status": "PROVED",
+          "proof": "SYMBOLIC_PROVED",
+          "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+          "work": {
+            "primitive_subterms": 2412,
+            "primitive_predicates": 630,
+            "subterm_representatives": 245,
+            "predicate_representatives": 6,
+            "probe_evaluations": 9333,
+            "auxiliary_scoring_steps": 0,
+            "macro_combinations_tried": 1785
+          },
+          "shapes_attempted": 99,
+          "candidate_evaluations": 297,
+          "verifier_invocations": 1,
+          "verifier_ms": 3.84,
+          "iterations": 1,
+          "cpu_ms": 222.79,
+          "solver_wall_ms": 222.8,
+          "peak_rss_mib": 65.61,
+          "work_units": 14260,
+          "expression_hash": "24ca632adbe675a5bcadfaabfcdb25813e45e30e8578da4f95b0502168927c5d",
+          "macros_available": 5,
+          "process_wall_ms": 367.91,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        }
+      ]
+    },
+    {
+      "task": "min3",
+      "seed": 2,
+      "category": "heldout",
+      "arm": "open_inheritance",
+      "status": "TIMEOUT",
+      "proved": false,
+      "total_completed_work_units": 0,
+      "partial_work_unavailable": true,
+      "total_process_wall_ms": 9009.96,
+      "peak_rss_mib": 67.11,
+      "attempts": [
+        {
+          "status": "TIMEOUT",
+          "task": "min3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 5,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 2003.93,
+          "peak_rss_mib": 67.11,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "min3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 5,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 3003.39,
+          "peak_rss_mib": 45.69,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "fe304433454757a6670463fc23f299390c54e1edccf36a30422db2c73637a842",
+          "stage": "P1"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "min3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 5,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 4002.64,
+          "peak_rss_mib": 45.72,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "efc228a79610dcee71c2e2ad43bdcc55fa3e5712e38ab3a789fc0014ad47ff0e",
+          "stage": "P2"
+        }
+      ]
+    },
+    {
+      "task": "min3",
+      "seed": 2,
+      "category": "heldout",
+      "arm": "no_inheritance",
+      "status": "TIMEOUT",
+      "proved": false,
+      "total_completed_work_units": 240621,
+      "partial_work_unavailable": true,
+      "total_process_wall_ms": 7613.48,
+      "peak_rss_mib": 67.27,
+      "attempts": [
+        {
+          "task": "min3",
+          "status": "EXHAUSTED",
+          "proof": null,
+          "proof_scope": null,
+          "work": {
+            "primitive_subterms": 8340,
+            "primitive_predicates": 8370,
+            "subterm_representatives": 1716,
+            "predicate_representatives": 203,
+            "probe_evaluations": 101820,
+            "auxiliary_scoring_steps": 120442,
+            "macro_combinations_tried": 0
+          },
+          "shapes_attempted": 1643,
+          "candidate_evaluations": 9915,
+          "verifier_invocations": 6,
+          "verifier_ms": 21.08,
+          "iterations": 6,
+          "cpu_ms": 458.54,
+          "solver_wall_ms": 459.2,
+          "peak_rss_mib": 67.27,
+          "work_units": 240621,
+          "expression_hash": null,
+          "macros_available": 0,
+          "process_wall_ms": 607.18,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "min3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 0,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 3003.0,
+          "peak_rss_mib": 45.66,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "fe304433454757a6670463fc23f299390c54e1edccf36a30422db2c73637a842",
+          "stage": "P1"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "min3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 0,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 4003.3,
+          "peak_rss_mib": 46.06,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "efc228a79610dcee71c2e2ad43bdcc55fa3e5712e38ab3a789fc0014ad47ff0e",
+          "stage": "P2"
+        }
+      ]
+    },
+    {
+      "task": "median3",
+      "seed": 2,
+      "category": "heldout",
+      "arm": "no_inheritance",
+      "status": "TIMEOUT",
+      "proved": false,
+      "total_completed_work_units": 303788,
+      "partial_work_unavailable": true,
+      "total_process_wall_ms": 7652.69,
+      "peak_rss_mib": 67.47,
+      "attempts": [
+        {
+          "task": "median3",
+          "status": "EXHAUSTED",
+          "proof": null,
+          "proof_scope": null,
+          "work": {
+            "primitive_subterms": 8340,
+            "primitive_predicates": 8370,
+            "subterm_representatives": 1716,
+            "predicate_representatives": 223,
+            "probe_evaluations": 101996,
+            "auxiliary_scoring_steps": 183404,
+            "macro_combinations_tried": 0
+          },
+          "shapes_attempted": 1672,
+          "candidate_evaluations": 10091,
+          "verifier_invocations": 6,
+          "verifier_ms": 22.09,
+          "iterations": 6,
+          "cpu_ms": 480.15,
+          "solver_wall_ms": 480.52,
+          "peak_rss_mib": 67.47,
+          "work_units": 303788,
+          "expression_hash": null,
+          "macros_available": 0,
+          "process_wall_ms": 646.38,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "median3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 0,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 3002.69,
+          "peak_rss_mib": 45.58,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "fe304433454757a6670463fc23f299390c54e1edccf36a30422db2c73637a842",
+          "stage": "P1"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "median3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 0,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 4003.62,
+          "peak_rss_mib": 45.84,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "efc228a79610dcee71c2e2ad43bdcc55fa3e5712e38ab3a789fc0014ad47ff0e",
+          "stage": "P2"
+        }
+      ]
+    },
+    {
+      "task": "median3",
+      "seed": 2,
+      "category": "heldout",
+      "arm": "open_inheritance",
+      "status": "TIMEOUT",
+      "proved": false,
+      "total_completed_work_units": 0,
+      "partial_work_unavailable": true,
+      "total_process_wall_ms": 9009.4,
+      "peak_rss_mib": 66.77,
+      "attempts": [
+        {
+          "status": "TIMEOUT",
+          "task": "median3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 5,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 2003.09,
+          "peak_rss_mib": 66.77,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "median3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 5,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 3003.47,
+          "peak_rss_mib": 46.19,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "fe304433454757a6670463fc23f299390c54e1edccf36a30422db2c73637a842",
+          "stage": "P1"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "median3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 5,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 4002.84,
+          "peak_rss_mib": 46.05,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "efc228a79610dcee71c2e2ad43bdcc55fa3e5712e38ab3a789fc0014ad47ff0e",
+          "stage": "P2"
+        }
+      ]
+    },
+    {
+      "task": "max4",
+      "seed": 2,
+      "category": "heldout",
+      "arm": "open_inheritance",
+      "status": "TIMEOUT",
+      "proved": false,
+      "total_completed_work_units": 0,
+      "partial_work_unavailable": true,
+      "total_process_wall_ms": 9009.84,
+      "peak_rss_mib": 66.47,
+      "attempts": [
+        {
+          "status": "TIMEOUT",
+          "task": "max4",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 5,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 2003.72,
+          "peak_rss_mib": 66.47,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "max4",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 5,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 3002.91,
+          "peak_rss_mib": 45.11,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "fe304433454757a6670463fc23f299390c54e1edccf36a30422db2c73637a842",
+          "stage": "P1"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "max4",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 5,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 4003.21,
+          "peak_rss_mib": 45.16,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "efc228a79610dcee71c2e2ad43bdcc55fa3e5712e38ab3a789fc0014ad47ff0e",
+          "stage": "P2"
+        }
+      ]
+    },
+    {
+      "task": "max4",
+      "seed": 2,
+      "category": "heldout",
+      "arm": "no_inheritance",
+      "status": "TIMEOUT",
+      "proved": false,
+      "total_completed_work_units": 424334,
+      "partial_work_unavailable": true,
+      "total_process_wall_ms": 8026.45,
+      "peak_rss_mib": 66.86,
+      "attempts": [
+        {
+          "task": "max4",
+          "status": "EXHAUSTED",
+          "proof": null,
+          "proof_scope": null,
+          "work": {
+            "primitive_subterms": 17472,
+            "primitive_predicates": 17523,
+            "subterm_representatives": 3301,
+            "predicate_representatives": 165,
+            "probe_evaluations": 179337,
+            "auxiliary_scoring_steps": 206724,
+            "macro_combinations_tried": 0
+          },
+          "shapes_attempted": 3272,
+          "candidate_evaluations": 16332,
+          "verifier_invocations": 6,
+          "verifier_ms": 23.46,
+          "iterations": 6,
+          "cpu_ms": 870.22,
+          "solver_wall_ms": 870.63,
+          "peak_rss_mib": 66.86,
+          "work_units": 424334,
+          "expression_hash": null,
+          "macros_available": 0,
+          "process_wall_ms": 1020.84,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "max4",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 0,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 3002.62,
+          "peak_rss_mib": 45.22,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "fe304433454757a6670463fc23f299390c54e1edccf36a30422db2c73637a842",
+          "stage": "P1"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "max4",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 0,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 4002.99,
+          "peak_rss_mib": 45.16,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "efc228a79610dcee71c2e2ad43bdcc55fa3e5712e38ab3a789fc0014ad47ff0e",
+          "stage": "P2"
+        }
+      ]
+    },
+    {
+      "task": "max3",
+      "seed": 2,
+      "category": "heldout",
+      "arm": "no_inheritance",
+      "status": "TIMEOUT",
+      "proved": false,
+      "total_completed_work_units": 412544,
+      "partial_work_unavailable": true,
+      "total_process_wall_ms": 7651.07,
+      "peak_rss_mib": 67.53,
+      "attempts": [
+        {
+          "task": "max3",
+          "status": "EXHAUSTED",
+          "proof": null,
+          "proof_scope": null,
+          "work": {
+            "primitive_subterms": 8340,
+            "primitive_predicates": 8370,
+            "subterm_representatives": 1716,
+            "predicate_representatives": 244,
+            "probe_evaluations": 102494,
+            "auxiliary_scoring_steps": 291526,
+            "macro_combinations_tried": 0
+          },
+          "shapes_attempted": 1808,
+          "candidate_evaluations": 10589,
+          "verifier_invocations": 6,
+          "verifier_ms": 18.88,
+          "iterations": 6,
+          "cpu_ms": 495.89,
+          "solver_wall_ms": 495.84,
+          "peak_rss_mib": 67.53,
+          "work_units": 412544,
+          "expression_hash": null,
+          "macros_available": 0,
+          "process_wall_ms": 644.61,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "max3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 0,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 3002.94,
+          "peak_rss_mib": 45.8,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "fe304433454757a6670463fc23f299390c54e1edccf36a30422db2c73637a842",
+          "stage": "P1"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "max3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 0,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 4003.52,
+          "peak_rss_mib": 45.94,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "efc228a79610dcee71c2e2ad43bdcc55fa3e5712e38ab3a789fc0014ad47ff0e",
+          "stage": "P2"
+        }
+      ]
+    },
+    {
+      "task": "max3",
+      "seed": 2,
+      "category": "heldout",
+      "arm": "open_inheritance",
+      "status": "PROVED",
+      "proved": true,
+      "total_completed_work_units": 125079,
+      "partial_work_unavailable": false,
+      "total_process_wall_ms": 1668.03,
+      "peak_rss_mib": 66.81,
+      "attempts": [
+        {
+          "task": "max3",
+          "status": "PROVED",
+          "proof": "SYMBOLIC_PROVED",
+          "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+          "work": {
+            "primitive_subterms": 18606,
+            "primitive_predicates": 4968,
+            "subterm_representatives": 1561,
+            "predicate_representatives": 20,
+            "probe_evaluations": 87129,
+            "auxiliary_scoring_steps": 0,
+            "macro_combinations_tried": 13658
+          },
+          "shapes_attempted": 716,
+          "candidate_evaluations": 2700,
+          "verifier_invocations": 2,
+          "verifier_ms": 10.29,
+          "iterations": 2,
+          "cpu_ms": 1502.24,
+          "solver_wall_ms": 1508.06,
+          "peak_rss_mib": 66.81,
+          "work_units": 125079,
+          "expression_hash": "91492a7533a6628f6b9d13e124cfa22f2c79d42d54554471915f1100176993f8",
+          "macros_available": 5,
+          "process_wall_ms": 1668.03,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        }
+      ]
+    }
+  ],
+  "posthoc_ablation": [
+    {
+      "task": "min3",
+      "seed": 2,
+      "category": "posthoc_ablation",
+      "arm": "whole_program_only",
+      "status": "TIMEOUT",
+      "proved": false,
+      "total_completed_work_units": 0,
+      "partial_work_unavailable": true,
+      "total_process_wall_ms": 9008.89,
+      "peak_rss_mib": 66.72,
+      "attempts": [
+        {
+          "status": "TIMEOUT",
+          "task": "min3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 3,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 2003.33,
+          "peak_rss_mib": 66.72,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "min3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 3,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 3002.54,
+          "peak_rss_mib": 45.86,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "fe304433454757a6670463fc23f299390c54e1edccf36a30422db2c73637a842",
+          "stage": "P1"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "min3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 3,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 4003.02,
+          "peak_rss_mib": 45.88,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "efc228a79610dcee71c2e2ad43bdcc55fa3e5712e38ab3a789fc0014ad47ff0e",
+          "stage": "P2"
+        }
+      ]
+    },
+    {
+      "task": "min3",
+      "seed": 2,
+      "category": "posthoc_ablation",
+      "arm": "proper_subtrees_only",
+      "status": "TIMEOUT",
+      "proved": false,
+      "total_completed_work_units": 285261,
+      "partial_work_unavailable": true,
+      "total_process_wall_ms": 8094.83,
+      "peak_rss_mib": 67.86,
+      "attempts": [
+        {
+          "task": "min3",
+          "status": "EXHAUSTED",
+          "proof": null,
+          "proof_scope": null,
+          "work": {
+            "primitive_subterms": 14292,
+            "primitive_predicates": 8370,
+            "subterm_representatives": 1716,
+            "predicate_representatives": 203,
+            "probe_evaluations": 134556,
+            "auxiliary_scoring_steps": 120442,
+            "macro_combinations_tried": 5952
+          },
+          "shapes_attempted": 1643,
+          "candidate_evaluations": 9915,
+          "verifier_invocations": 6,
+          "verifier_ms": 22.07,
+          "iterations": 6,
+          "cpu_ms": 916.76,
+          "solver_wall_ms": 918.76,
+          "peak_rss_mib": 67.86,
+          "work_units": 285261,
+          "expression_hash": null,
+          "macros_available": 2,
+          "process_wall_ms": 1088.32,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "min3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 2,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 3003.98,
+          "peak_rss_mib": 44.77,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "fe304433454757a6670463fc23f299390c54e1edccf36a30422db2c73637a842",
+          "stage": "P1"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "min3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 2,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 4002.53,
+          "peak_rss_mib": 45.64,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "efc228a79610dcee71c2e2ad43bdcc55fa3e5712e38ab3a789fc0014ad47ff0e",
+          "stage": "P2"
+        }
+      ]
+    },
+    {
+      "task": "max3",
+      "seed": 2,
+      "category": "posthoc_ablation",
+      "arm": "proper_subtrees_only",
+      "status": "TIMEOUT",
+      "proved": false,
+      "total_completed_work_units": 457184,
+      "partial_work_unavailable": true,
+      "total_process_wall_ms": 8208.27,
+      "peak_rss_mib": 67.58,
+      "attempts": [
+        {
+          "task": "max3",
+          "status": "EXHAUSTED",
+          "proof": null,
+          "proof_scope": null,
+          "work": {
+            "primitive_subterms": 14292,
+            "primitive_predicates": 8370,
+            "subterm_representatives": 1716,
+            "predicate_representatives": 244,
+            "probe_evaluations": 135230,
+            "auxiliary_scoring_steps": 291526,
+            "macro_combinations_tried": 5952
+          },
+          "shapes_attempted": 1808,
+          "candidate_evaluations": 10589,
+          "verifier_invocations": 6,
+          "verifier_ms": 22.31,
+          "iterations": 6,
+          "cpu_ms": 1030.05,
+          "solver_wall_ms": 1055.09,
+          "peak_rss_mib": 67.58,
+          "work_units": 457184,
+          "expression_hash": null,
+          "macros_available": 2,
+          "process_wall_ms": 1202.46,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "max3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 2,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 3002.96,
+          "peak_rss_mib": 45.77,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "fe304433454757a6670463fc23f299390c54e1edccf36a30422db2c73637a842",
+          "stage": "P1"
+        },
+        {
+          "status": "TIMEOUT",
+          "task": "max3",
+          "proof": null,
+          "work": null,
+          "work_units": null,
+          "shapes_attempted": null,
+          "candidate_evaluations": null,
+          "verifier_invocations": null,
+          "verifier_ms": null,
+          "cpu_ms": null,
+          "solver_wall_ms": null,
+          "macros_available": 2,
+          "note": "Supervised worker interrupted; partial work counters unavailable",
+          "process_wall_ms": 4002.85,
+          "peak_rss_mib": 45.95,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "efc228a79610dcee71c2e2ad43bdcc55fa3e5712e38ab3a789fc0014ad47ff0e",
+          "stage": "P2"
+        }
+      ]
+    },
+    {
+      "task": "max3",
+      "seed": 2,
+      "category": "posthoc_ablation",
+      "arm": "whole_program_only",
+      "status": "PROVED",
+      "proved": true,
+      "total_completed_work_units": 105629,
+      "partial_work_unavailable": false,
+      "total_process_wall_ms": 1438.63,
+      "peak_rss_mib": 66.78,
+      "attempts": [
+        {
+          "task": "max3",
+          "status": "PROVED",
+          "proof": "SYMBOLIC_PROVED",
+          "proof_scope": "cin.verifier/z3-smt-lia-v0.1",
+          "work": {
+            "primitive_subterms": 15130,
+            "primitive_predicates": 4968,
+            "subterm_representatives": 1561,
+            "predicate_representatives": 20,
+            "probe_evaluations": 74631,
+            "auxiliary_scoring_steps": 0,
+            "macro_combinations_tried": 10182
+          },
+          "shapes_attempted": 716,
+          "candidate_evaluations": 2700,
+          "verifier_invocations": 2,
+          "verifier_ms": 10.48,
+          "iterations": 2,
+          "cpu_ms": 1291.27,
+          "solver_wall_ms": 1292.66,
+          "peak_rss_mib": 66.78,
+          "work_units": 105629,
+          "expression_hash": "91492a7533a6628f6b9d13e124cfa22f2c79d42d54554471915f1100176993f8",
+          "macros_available": 3,
+          "process_wall_ms": 1438.63,
+          "rss_limit_mib": 400,
+          "stage_profile_hash": "a61a7263ee733ca576d9ee5505066dfafd83e4e908f72665840b4d5bd72b0b2a",
+          "stage": "P0"
+        }
+      ]
+    }
+  ],
+  "stress": [],
+  "cohort_cost": {
+    "seed=2/no_inheritance": {
+      "complete_work_lower_bound": 1416357,
+      "has_interrupted_unknown_cost": true,
+      "solved": 1,
+      "denominator": 5,
+      "total_task_process_wall_ms": 31102.88
+    },
+    "seed=2/open_inheritance": {
+      "complete_work_lower_bound": 172267,
+      "has_interrupted_unknown_cost": true,
+      "solved": 2,
+      "denominator": 5,
+      "total_task_process_wall_ms": 29065.14
+    }
+  },
+  "notes": [
+    "The profiles jointly alter several search parameters; effects are not separately attributable",
+    "Probe equality is not symbolic equivalence; proof requires independent Z3 check",
+    "Hard-terminated worker partial counters are unavailable and excluded from known work totals",
+    "The stage schedule is matched, while used work and time may differ by arm",
+    "Two task-order seeds are not independent cohorts",
+    "Unsolved tasks may be limited by the closed integer grammar or decision-tree shape"
+  ]
+}
