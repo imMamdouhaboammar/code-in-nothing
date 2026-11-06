@@ -9,6 +9,7 @@ Worst-case search remains combinatorial; no polynomial-time guarantee is implied
 from __future__ import annotations
 
 from dataclasses import dataclass
+from itertools import product
 from typing import Any, Callable
 
 from cin.ir import IRViolation, Limits, canonical_hash, check_tree, run_ir_args
@@ -88,6 +89,29 @@ class SynthesisWork:
     predicate_representatives: int = 0
     probe_evaluations: int = 0
     auxiliary_scoring_steps: int = 0
+    macro_combinations_tried: int = 0
+
+
+@dataclass(frozen=True)
+class SynthesisSearchConfig:
+    """Opt-in experimental search limits; the default synthesis path is unchanged."""
+
+    subterm_depth: int = 3
+    predicate_term_depth: int = 2
+    max_macro_arity: int = 2
+    macro_combination_limit: int | None = None
+    branch_attempt_limit: int | None = 512
+    include_nullary_macros: bool = False
+
+    def __post_init__(self) -> None:
+        if self.subterm_depth < 1 or self.predicate_term_depth < 1:
+            raise ValueError("Search term depths must be positive")
+        if not 1 <= self.max_macro_arity <= 8:
+            raise ValueError("Macro arity must be between 1 and 8")
+        if self.macro_combination_limit is not None and self.macro_combination_limit < 1:
+            raise ValueError("Macro combination limit must be positive")
+        if self.branch_attempt_limit is not None and self.branch_attempt_limit < 1:
+            raise ValueError("Branch attempt limit must be positive")
 
 
 def generate_candidate_subterms(
@@ -99,6 +123,9 @@ def generate_candidate_subterms(
     limits: Limits = Limits(),
     macro_registry: Any | None = None,
     work: SynthesisWork | None = None,
+    max_macro_arity: int = 2,
+    macro_combination_limit: int | None = None,
+    include_nullary_macros: bool = False,
 ) -> list[dict]:
     """Generate arithmetic subterms with observational equivalence pruning."""
     leaves: list[dict] = []
@@ -140,6 +167,13 @@ def generate_candidate_subterms(
     for leaf in leaves:
         try_add(leaf, 1)
 
+    if macro_registry is not None and include_nullary_macros:
+        for macro in macro_registry.list_macros():
+            if macro.arity == 0:
+                if work is not None:
+                    work.macro_combinations_tried += 1
+                try_add({"op": "CallMacro", "macro": macro.name, "args": []}, 1)
+
     arithmetic_ops = [op for op in ("Add", "Sub") if op in allowed]
     current_terms = list(bank.values())
 
@@ -169,28 +203,37 @@ def generate_candidate_subterms(
                         next_terms.append(expr)
 
         if macro_registry is not None:
-            for macro in macro_registry.list_macros():
-                if macro.arity == 1:
-                    for t in current_terms:
-                        new_depth = 1 + _size_depth(t)[1]
-                        if new_depth == d:
-                            expr = {"op": "CallMacro", "macro": macro.name, "args": [t]}
-                            if try_add(expr, new_depth):
-                                next_terms.append(expr)
-                elif macro.arity == 2:
-                    for left in current_terms:
-                        left_depth = _size_depth(left)[1]
-                        for right in current_terms:
-                            right_depth = _size_depth(right)[1]
-                            new_depth = 1 + max(left_depth, right_depth)
-                            if new_depth == d:
-                                expr = {
-                                    "op": "CallMacro",
-                                    "macro": macro.name,
-                                    "args": [left, right],
-                                }
-                                if try_add(expr, new_depth):
-                                    next_terms.append(expr)
+            # Preserve the legacy unary/binary tuple ordering when no higher-arity
+            # exploration is requested. The adaptive path places deeper terms
+            # first so a lazy Cartesian expansion reaches the target depth.
+            term_depths = [(_size_depth(term)[1], term) for term in current_terms]
+            if any(depth == d - 1 for depth, _ in term_depths):
+                for macro in macro_registry.list_macros():
+                    if not 1 <= macro.arity <= max_macro_arity:
+                        continue
+                    options = term_depths
+                    if macro.arity > 2:
+                        options = sorted(term_depths, key=lambda pair: -pair[0])
+                    combinations_tried = 0
+                    for argument_parts in product(options, repeat=macro.arity):
+                        new_depth = 1 + max(depth for depth, _ in argument_parts)
+                        if new_depth != d:
+                            continue
+                        if (
+                            macro_combination_limit is not None
+                            and combinations_tried >= macro_combination_limit
+                        ):
+                            break
+                        combinations_tried += 1
+                        if work is not None:
+                            work.macro_combinations_tried += 1
+                        expr = {
+                            "op": "CallMacro",
+                            "macro": macro.name,
+                            "args": [term for _, term in argument_parts],
+                        }
+                        if try_add(expr, new_depth):
+                            next_terms.append(expr)
 
         if not next_terms:
             break
@@ -259,6 +302,7 @@ def synthesize_conditional_tree(
     max_tree_depth: int | None = None,
     macro_registry: Any | None = None,
     work: SynthesisWork | None = None,
+    search_config: SynthesisSearchConfig | None = None,
 ) -> DecisionResult | None:
     """Synthesize a verified conditional AST via information-theoretic branch decoupling.
 
@@ -310,13 +354,21 @@ def synthesize_conditional_tree(
             allowed,
             constants,
             cases,
-            max_depth=3,
+            max_depth=search_config.subterm_depth if search_config else 3,
             limits=limits,
             macro_registry=macro_registry,
             work=work,
+            max_macro_arity=search_config.max_macro_arity if search_config else 2,
+            macro_combination_limit=(
+                search_config.macro_combination_limit if search_config else None
+            ),
+            include_nullary_macros=(
+                search_config.include_nullary_macros if search_config else False
+            ),
         )
 
-    atomic_terms = [t for t in subterms if _size_depth(t)[1] <= 2]
+    predicate_depth = search_config.predicate_term_depth if search_config else 2
+    atomic_terms = [t for t in subterms if _size_depth(t)[1] <= predicate_depth]
 
     if predicates is None and "If" in allowed:
         predicates = generate_candidate_predicates(
@@ -493,7 +545,15 @@ def synthesize_conditional_tree(
     # Step 4: Bounded, score-guided backtracking over conditional partitions.
     # A locally attractive ID3 split can make a subsequent branch impossible.
     branch_attempts = 0
-    branch_budget = max(32, min(512, len(valid_predicates) * len(cases) * 2))
+    branch_budget = (
+        max(32, min(512, len(valid_predicates) * len(cases) * 2))
+        if search_config is None
+        else (
+            float("inf")
+            if search_config.branch_attempt_limit is None
+            else search_config.branch_attempt_limit
+        )
+    )
     successful_subtrees: dict[tuple[frozenset[int], int], dict] = {}
 
     def induce_tree(active_points: set[int], current_depth: int) -> dict | None:

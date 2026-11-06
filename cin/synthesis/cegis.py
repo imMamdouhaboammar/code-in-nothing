@@ -12,7 +12,12 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from .decision import DecisionResult, SynthesisWork, synthesize_conditional_tree
+from .decision import (
+    DecisionResult,
+    SynthesisSearchConfig,
+    SynthesisWork,
+    synthesize_conditional_tree,
+)
 from .library import MacroRegistry
 from .sygus import SyGuSTask
 from .z3_verifier import HAS_Z3, Z3Verdict, verify_spec_with_z3
@@ -61,6 +66,7 @@ def run_cegis_loop(
     max_rounds: int = 15,
     timeout_sec: float = 30.0,
     work: SynthesisWork | None = None,
+    search_config: SynthesisSearchConfig | None = None,
 ) -> CEGISResult:
     """Executes a full CEGIS loop for a given SyGuS task using Z3.
 
@@ -149,6 +155,7 @@ def run_cegis_loop(
             base,
             macro_registry=macro_registry,
             work=work,
+            search_config=search_config,
         )
 
         if res is None:
